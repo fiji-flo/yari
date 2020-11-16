@@ -25,6 +25,12 @@ function buildPath(localeFolder, slug) {
 const HTML_FILENAME = "index.html";
 const getHTMLPath = (folder) => path.join(folder, HTML_FILENAME);
 
+function buildHtmlPath(locale, slug) {
+  return getHTMLPath(
+    buildPath(path.join(CONTENT_ROOT, locale.toLowerCase()), slug)
+  );
+}
+
 function updateWikiHistory(localeContentRoot, oldSlug, newSlug = null) {
   const all = JSON.parse(
     fs.readFileSync(path.join(localeContentRoot, "_wikihistory.json"))
@@ -139,23 +145,21 @@ function archive(renderedHTML, rawHTML, metadata, isTranslatedContent = false) {
   return folderPath;
 }
 
-const read = memoize((folder) => {
-  let filePath = null;
-  let root = null;
-  for (const possibleRoot of ROOTS) {
-    const possibleFilePath = path.join(possibleRoot, getHTMLPath(folder));
-    if (fs.existsSync(possibleFilePath)) {
-      root = possibleRoot;
-      filePath = possibleFilePath;
-      break;
-    }
-  }
+function readFilePath(filePath, root = CONTENT_ROOT) {
   if (!filePath) {
     return;
   }
   if (filePath.includes(" ")) {
     throw new Error("Folder contains whitespace which is not allowed.");
   }
+
+  const absRoot = `${path.resolve(root)}/`;
+  const absFilePath = path.dirname(path.resolve(filePath));
+  if (!absFilePath.startsWith(absRoot)) {
+    throw new Error(`File: ${filePath} not in root: ${root}`);
+  }
+  const folder = absFilePath.slice(absRoot.length);
+
   const isTranslated =
     CONTENT_TRANSLATED_ROOT && filePath.startsWith(CONTENT_TRANSLATED_ROOT);
   const isArchive =
@@ -195,6 +199,20 @@ const read = memoize((folder) => {
       root,
     },
   };
+}
+
+const read = memoize((folder) => {
+  let filePath = null;
+  let root = null;
+  for (const possibleRoot of ROOTS) {
+    const possibleFilePath = path.join(possibleRoot, getHTMLPath(folder));
+    if (fs.existsSync(possibleFilePath)) {
+      root = possibleRoot;
+      filePath = possibleFilePath;
+      break;
+    }
+  }
+  return readFilePath(filePath, root);
 });
 
 function update(url, rawHTML, metadata) {
@@ -443,6 +461,18 @@ function remove(
   return docs;
 }
 
+function findByAny(any, locale = "en-US", root = CONTENT_ROOT) {
+  if (any.startsWith("http://") || any.startsWith("https://")) {
+    const url = new URL(any);
+    return findByURL(url.pathname);
+  }
+  if (any.endsWith("index.html")) {
+    // This one is not cached and we expect root to be CONTENT_ROOT.
+    return readFilePath(any, root);
+  }
+  return findByURL(buildURL(locale, any));
+}
+
 module.exports = {
   create,
   archive,
@@ -457,8 +487,13 @@ module.exports = {
   getFolderPath,
   fileForSlug,
   parentSlug,
+  buildHtmlPath,
 
   findByURL,
+  findByAny,
   findAll,
   findChildren,
+
+  readFilePath,
+  saveHTMLFile,
 };

@@ -9,6 +9,7 @@ const path = require("path");
 const { DEFAULT_LOCALE, VALID_LOCALES } = require("../libs/constants");
 const { Redirect, Document, buildURL } = require("../content");
 const { buildDocument } = require("../build");
+const { translateDocument } = require("./translate");
 
 const PORT = parseInt(process.env.SERVER_PORT || "5000");
 
@@ -275,6 +276,21 @@ program
       if (run) {
         buildDocument(document, { fixFlaws: true, fixFlawsVerbose: true });
       }
+    })
+  )
+
+  .command("translate", "Translate a document")
+  .argument("<any>", "Slug, URL or HTML file of the document in question")
+  .argument("<to>", "Target language")
+  .argument("[out]", "Output file")
+  .action(
+    tryOrExit(async ({ args }) => {
+      const { any, to, out } = args;
+      const document = Document.findByAny(any);
+      const slug = document.metadata.slug;
+
+      const outFile = await translateDocument(document, to, out);
+      console.log(chalk.green(`✔ ${to} version of ${slug}: ${outFile}`));
     })
   );
 
