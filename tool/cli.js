@@ -9,7 +9,7 @@ const path = require("path");
 const { DEFAULT_LOCALE, VALID_LOCALES } = require("../libs/constants");
 const { Redirect, Document, buildURL } = require("../content");
 const { buildDocument } = require("../build");
-const { translateDocument } = require("./translate");
+const { translateDocument, translateRawHTML } = require("./translate");
 
 const PORT = parseInt(process.env.SERVER_PORT || "5000");
 
@@ -292,6 +292,17 @@ program
       const outFile = await translateDocument(document, to, out);
       console.log(chalk.green(`✔ ${to} version of ${slug}: ${outFile}`));
     })
-  );
+  )
 
+  .command("translate-raw", "Translate a document")
+  .argument("<html>", "HTML content")
+  .argument("<to>", "Target language")
+  .action(
+    tryOrExit(async ({ args }) => {
+      const { html, to } = args;
+
+      const out = await translateRawHTML(html, to);
+      console.log(out);
+    })
+  );
 program.run();

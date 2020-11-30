@@ -15,13 +15,8 @@ function decodeKuma(s) {
     kuma.replace(/\\"/g, '"')
   );
 }
-
-async function translateDocument(doc, locale, out) {
+async function translateRawHTML(html, to) {
   const translate = new Translate();
-  const to = locale === "en-US" ? "en" : locale;
-  const outFile = out || Document.buildHtmlPath(locale, doc.metadata.slug);
-  const { rawHTML } = doc;
-  const html = encodeKuma(rawHTML);
   const [translations] = await translate.translate(html, {
     to,
     from: "en",
@@ -30,6 +25,15 @@ async function translateDocument(doc, locale, out) {
   const translation = Array.isArray(translations)
     ? translations[0]
     : translations;
+  return translation;
+}
+
+async function translateDocument(doc, locale, out) {
+  const to = locale === "en-US" ? "en" : locale;
+  const outFile = out || Document.buildHtmlPath(locale, doc.metadata.slug);
+  const { rawHTML } = doc;
+  const html = encodeKuma(rawHTML);
+  const translation = translateRawHTML(html, to);
   const translatedHTML = decodeKuma(translation);
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   Document.saveHTMLFile(outFile, translatedHTML, {
@@ -42,4 +46,5 @@ async function translateDocument(doc, locale, out) {
 
 module.exports = {
   translateDocument,
+  translateRawHTML,
 };
