@@ -362,7 +362,7 @@ program
 
   .command("redundant-translations", "Find redundant translations")
   .action(
-    tryOrExit(async () => {
+    tryOrExit(async ({ options }) => {
       if (!CONTENT_TRANSLATED_ROOT) {
         throw new Error("CONTENT_TRANSLATED_ROOT not set");
       }
@@ -378,6 +378,7 @@ program
       for (const document of documents.iter()) {
         if (!document.isTranslated) continue;
         const { translation_of, locale } = document.metadata;
+
         if (!map.has(translation_of)) {
           map.set(translation_of, new Map());
         }
@@ -398,7 +399,7 @@ program
       let sumENUS = 0;
       let sumTotal = 0;
       for (const [translation_of, localeMap] of map) {
-        for (const [, metadatas] of localeMap) {
+        for (const [locale, metadatas] of localeMap) {
           if (metadatas.length > 1) {
             // console.log(translation_of, locale, metadatas);
             sumENUS++;
@@ -418,6 +419,59 @@ program
       console.log(
         `In total, ${sumTotal} translations that share the same translation_of`
       );
+    })
+  )
+
+  .command("redundant-translations-by-locale", "Find redundant translations")
+  .action(
+    tryOrExit(async ({ options }) => {
+      const { debug } = options;
+      if (!CONTENT_TRANSLATED_ROOT) {
+        throw new Error("CONTENT_TRANSLATED_ROOT not set");
+      }
+      if (!fs.existsSync(CONTENT_TRANSLATED_ROOT)) {
+        throw new Error(`${CONTENT_TRANSLATED_ROOT} does not exist`);
+      }
+      const documents = Document.findAll();
+      if (!documents.count) {
+        throw new Error("No documents to analyze");
+      }
+      // Build up a map of translations by their `locale`
+      const byLocale = new Map();
+      for (const document of documents.iter()) {
+        if (!document.isTranslated) continue;
+        const { translation_of, locale } = document.metadata;
+        if (!translation_of) continue;
+        if (!byLocale.has(locale)) {
+          byLocale.set(locale, new Map());
+        }
+        if (!byLocale.get(locale).has(translation_of)) {
+          byLocale.get(locale).set(translation_of, {
+            url: `https://developer.allizom.org/en-US/docs/${translation_of}`,
+            translations: [],
+          });
+        }
+        byLocale
+          .get(locale)
+          .get(translation_of)
+          .translations.push(
+            Object.assign(
+              {
+                url: `https://developer.mozilla.org/${locale}/docs/${document.metadata.slug}`,
+              },
+              document.metadata
+            )
+          );
+      }
+      const out = [...byLocale.entries()].map(([locale, map]) => {
+        return [
+          locale,
+          [...map.entries()].filter(
+            ([_, { translations }]) => translations.length > 1
+          ),
+        ];
+      });
+      console.log(JSON.stringify(Object.fromEntries(out)));
     })
   );
 
