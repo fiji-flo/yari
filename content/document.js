@@ -25,6 +25,8 @@ const {
   execGit,
   urlToFolderPath,
   MEMOIZE_INVALIDATE,
+  md2Html,
+  html2Md,
 } = require("./utils");
 const Redirect = require("./redirect");
 
@@ -34,6 +36,8 @@ function buildPath(localeFolder, slug) {
 
 const HTML_FILENAME = "index.html";
 const getHTMLPath = (folder) => path.join(folder, HTML_FILENAME);
+const MD_FILENAME = "index.md";
+const getMdPath = (folder) => path.join(folder, MD_FILENAME);
 
 function updateWikiHistory(localeContentRoot, oldSlug, newSlug = null) {
   const all = JSON.parse(
@@ -192,7 +196,15 @@ function unarchive(document, move) {
 const read = memoize((folder) => {
   let filePath = null;
   let root = null;
+  let isMarkdown = false;
   for (const possibleRoot of ROOTS) {
+    const possibleMdFilePath = path.join(possibleRoot, getMdPath(folder));
+    if (fs.existsSync(possibleMdFilePath)) {
+      root = possibleRoot;
+      filePath = possibleMdFilePath;
+      isMarkdown = true;
+      break;
+    }
     const possibleFilePath = path.join(possibleRoot, getHTMLPath(folder));
     if (fs.existsSync(possibleFilePath)) {
       root = possibleRoot;
@@ -234,11 +246,11 @@ const read = memoize((folder) => {
     throw new Error(`${filePath} contains git merge conflict markers`);
   }
 
-  const {
-    attributes: metadata,
-    body: rawHTML,
-    bodyBegin: frontMatterOffset,
-  } = fm(rawContent);
+  const { attributes: metadata, body, bodyBegin: frontMatterOffset } = fm(
+    rawContent
+  );
+
+  const rawHTML = isMarkdown ? md2Html(body) : body;
 
   const locale = extractLocale(folder);
   const url = `/${locale}/docs/${metadata.slug}`;
@@ -264,6 +276,7 @@ const read = memoize((folder) => {
       popularity: getPopularities().get(url) || 0.0,
       modified,
       hash,
+      md: isMarkdown,
       contributors: wikiHistory ? wikiHistory.contributors : [],
     },
     url,

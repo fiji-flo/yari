@@ -101,6 +101,48 @@ function execGit(args, opts = {}, root = null) {
   return stdout.toString().trim();
 }
 
+function html2Md(html) {
+  const { status, error, stdout, stderr } = childProcess.spawnSync(
+    "pandoc",
+    ["-f", "html", "-t", "markdown"],
+    { input: html }
+  );
+  if (error || status !== 0) {
+    if (stderr) {
+      console.log(`Error running git ${args}`);
+      console.error(stderr);
+    }
+    if (error) {
+      throw error;
+    }
+    throw new Error(
+      `git command failed: ${stderr.toString() || stdout.toString()}`
+    );
+  }
+  return stdout.toString().trim();
+}
+
+function md2Html(md) {
+  const { status, error, stdout, stderr } = childProcess.spawnSync(
+    "pandoc",
+    ["-f", "markdown", "--no-highlight", "-t", "html"],
+    { input: md }
+  );
+  if (error || status !== 0) {
+    if (stderr) {
+      console.log(`Error running git ${args}`);
+      console.error(stderr);
+    }
+    if (error) {
+      throw error;
+    }
+    throw new Error(
+      `git command failed: ${stderr.toString() || stdout.toString()}`
+    );
+  }
+  return stdout.toString().trim();
+}
+
 function urlToFolderPath(url) {
   const [, locale, , ...slugParts] = url.split("/");
   return path.join(locale.toLowerCase(), slugToFolder(slugParts.join("/")));
@@ -114,4 +156,6 @@ module.exports = {
   execGit,
   urlToFolderPath,
   MEMOIZE_INVALIDATE,
+  md2Html,
+  html2Md,
 };
