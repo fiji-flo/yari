@@ -127,4 +127,5 @@ export interface Doc {
   isArchive: boolean;
   isTranslated: boolean;
   isActive: boolean;
+  isMarkdown: boolean;
 }

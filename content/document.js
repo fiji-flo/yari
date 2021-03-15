@@ -74,7 +74,15 @@ function extractLocale(folder) {
 function saveHTMLFile(
   filePath,
   rawHTML,
-  { slug, title, translation_of, tags, translation_of_original, original_slug }
+  {
+    isMarkdown = false,
+    slug,
+    title,
+    translation_of,
+    tags,
+    translation_of_original,
+    original_slug,
+  }
 ) {
   if (slug.includes("#")) {
     throw new Error("newSlug can not contain the '#' character");
@@ -97,8 +105,10 @@ function saveHTMLFile(
   if (original_slug) {
     metadata.original_slug = original_slug;
   }
-  const combined = `---\n${yaml.dump(metadata)}---\n${rawHTML.trim()}\n`;
-  fs.writeFileSync(filePath, combined);
+  const rawContent = isMarkdown ? html2Md(rawHTML.trim()) : rawHTML.trim();
+  const combined = `---\n${yaml.dump(metadata)}---\n${rawContent}\n`;
+  const outFilePath = isMarkdown ? filePath.replace(/html$/, "md") : filePath;
+  fs.writeFileSync(outFilePath, combined);
 }
 
 function trimLineEndings(string) {
@@ -276,7 +286,7 @@ const read = memoize((folder) => {
       popularity: getPopularities().get(url) || 0.0,
       modified,
       hash,
-      md: isMarkdown,
+      isMarkdown,
       contributors: wikiHistory ? wikiHistory.contributors : [],
     },
     url,
@@ -288,6 +298,7 @@ const read = memoize((folder) => {
     isArchive,
     isTranslated,
     isActive,
+    isMarkdown,
     fileInfo: {
       folder,
       path: filePath,
@@ -557,6 +568,22 @@ function remove(
   return docs;
 }
 
+function convertToMarkdown(slug, locale) {
+  const root = getRoot(locale);
+  const url = buildURL(locale, slug);
+  const doc = findByURL(url) || {};
+  if (!doc) {
+    throw new Error(`document does not exists: ${url}`);
+  }
+  doc.metadata.isMarkdown = true;
+
+  const folderPath = getFolderPath({ slug, locale });
+  const mdPath = getMdPath(folderPath);
+  const htmlPath = getHTMLPath(folderPath);
+  execGit(["mv", htmlPath, mdPath], { cwd: root });
+  saveHTMLFile(mdPath, doc.rawHTML, doc.metadata);
+}
+
 module.exports = {
   create,
   archive,
@@ -567,6 +594,7 @@ module.exports = {
   remove,
   move,
   validate,
+  convertToMarkdown,
 
   urlToFolderPath,
   getFolderPath,

@@ -3,7 +3,13 @@ import { Link, useLocation, useParams } from "react-router-dom";
 
 import "./edit-actions.scss";
 
-export function EditActions({ folder }: { folder: string }) {
+export function EditActions({
+  folder,
+  isMarkdown = false,
+}: {
+  folder: string;
+  isMarkdown: boolean;
+}) {
   const location = useLocation();
 
   const [opening, setOpening] = useState(false);
@@ -28,7 +34,7 @@ export function EditActions({ folder }: { folder: string }) {
   async function openInEditorHandler(event: React.MouseEvent) {
     event.preventDefault();
 
-    const filepath = folder + "/index.html";
+    const filepath = `${folder}/index.${isMarkdown ? "md" : "html"}`;
     console.log(`Going to try to open ${filepath} in your editor`);
     setOpening(true);
     try {
@@ -45,6 +51,24 @@ export function EditActions({ folder }: { folder: string }) {
       }
     } catch (err) {
       setEditorOpeningError(err);
+    }
+  }
+
+  async function convertToMarkdownHandler(event: React.MouseEvent) {
+    event.preventDefault();
+    const response = await fetch(
+      `/_document/convert?slug=${encodeURIComponent(
+        slug || ""
+      )}&locale=${locale}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    if (response.ok) {
+      window.alert("Document successfully converted");
+    } else {
+      window.alert(`Error while converting document: ${response.statusText}`);
     }
   }
 
@@ -76,14 +100,29 @@ export function EditActions({ folder }: { folder: string }) {
         </a>
       </li>
 
-      <li>
-        <Link
-          to={location.pathname.replace("/docs/", "/_edit/")}
-          className="button"
-        >
-          Quick-edit
-        </Link>
-      </li>
+      {isMarkdown || (
+        <li>
+          <Link
+            to={location.pathname.replace("/docs/", "/_edit/")}
+            className="button"
+          >
+            Quick-edit
+          </Link>
+        </li>
+      )}
+
+      {isMarkdown || (
+        <li>
+          <button
+            type="button"
+            className="button"
+            title={`Folder: ${folder}`}
+            onClick={convertToMarkdownHandler}
+          >
+            Convert to <b>markdown</b>
+          </button>
+        </li>
+      )}
 
       {editorOpeningError ? (
         <p className="error-message editor-opening-error">

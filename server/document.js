@@ -71,6 +71,11 @@ router.put("/", withDocument, async (req, res) => {
   res.sendStatus(200);
 });
 
+router.put("/convert", async (req, res) => {
+  Document.convertToMarkdown(req.query.slug, req.query.locale);
+  res.sendStatus(200);
+});
+
 router.put("/move", async (req, res) => {
   Document.move(req.query.slug, req.query.newSlug, req.query.locale);
   res.sendStatus(200);

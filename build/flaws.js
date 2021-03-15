@@ -467,7 +467,7 @@ function injectPreTagFlaws(doc, $, { rawContent }) {
     const $pre = $(element).parent();
     // Because Cheerio doesn't support selectors like `pre + code` we have to
     // manually (double) check that the parent really is a `<pre>` tag.
-    if ($pre.length && $pre.get(0).tagName === "pre") {
+    if (!doc.isMarkdown && $pre.length && $pre.get(0).tagName === "pre") {
       addCodeTagFlaw($pre);
     }
   });

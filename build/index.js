@@ -226,6 +226,7 @@ async function buildDocument(document, documentOptions = {}) {
     isArchive: document.isArchive,
     isTranslated: document.isTranslated,
     isActive: document.isActive,
+    isMarkdown: document.isMarkdown,
   };
 
   doc.flaws = {};

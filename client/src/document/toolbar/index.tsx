@@ -35,7 +35,7 @@ export default function Toolbar({
   return (
     <div className="toolbar">
       <div className="toolbar-first-row">
-        <EditActions folder={doc.source.folder} />
+        <EditActions folder={doc.source.folder} isMarkdown={doc.isMarkdown} />
       </div>
       <ToggleDocumentFlaws doc={doc} reloadPage={reloadPage} />
     </div>

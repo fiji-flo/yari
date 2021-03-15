@@ -95,7 +95,7 @@ function execGit(args, opts = {}, root = null) {
       throw error;
     }
     throw new Error(
-      `git command failed: ${stderr.toString() || stdout.toString()}`
+      `pandoc command failed: ${stderr.toString() || stdout.toString()}`
     );
   }
   return stdout.toString().trim();
@@ -104,7 +104,7 @@ function execGit(args, opts = {}, root = null) {
 function html2Md(html) {
   const { status, error, stdout, stderr } = childProcess.spawnSync(
     "pandoc",
-    ["-f", "html", "-t", "markdown"],
+    ["-f", "html", "--wrap=none", "-t", "markdown-smart"],
     { input: html }
   );
   if (error || status !== 0) {
@@ -116,7 +116,7 @@ function html2Md(html) {
       throw error;
     }
     throw new Error(
-      `git command failed: ${stderr.toString() || stdout.toString()}`
+      `pandoc command failed: ${stderr.toString() || stdout.toString()}`
     );
   }
   return stdout.toString().trim();
@@ -125,7 +125,7 @@ function html2Md(html) {
 function md2Html(md) {
   const { status, error, stdout, stderr } = childProcess.spawnSync(
     "pandoc",
-    ["-f", "markdown", "--no-highlight", "-t", "html"],
+    ["-f", "markdown-smart", "--wrap=auto", "--no-highlight", "-t", "html"],
     { input: md }
   );
   if (error || status !== 0) {
