@@ -286,8 +286,8 @@ program
   .option("-i, --interactive", "Ask what to do when encountering flaws", {
     default: false,
   })
-  .option("-n, --nohtml", "Do not build index.html", {
-    default: false,
+  .option("--html", "Build the index.html files", {
+    default: true,
   })
   .option("-l, --locale <locale...>", "Filtered specific locales", {
     default: [],
@@ -328,7 +328,7 @@ program
         files,
         Boolean(options.quiet),
         Boolean(options.interactive),
-        Boolean(options.nohtml),
+        !options.html,
         locales
       );
       const t1 = new Date();
