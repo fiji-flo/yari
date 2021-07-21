@@ -286,7 +286,7 @@ program
   .option("-i, --interactive", "Ask what to do when encountering flaws", {
     default: false,
   })
-  .option("--html", "Build the index.html files", {
+  .option("--html", "Build the index.html files (use --no-html to reverse)", {
     default: true,
   })
   .option("-l, --locale <locale...>", "Filtered specific locales", {
