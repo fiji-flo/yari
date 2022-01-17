@@ -84,8 +84,8 @@ export function Document(props /* TODO: define a TS interface for this */) {
     } else if (doc) {
       document.title = doc.pageTitle;
       MDN_APP_DESKTOP &&
-        window.Desktop &&
-        window.Desktop.setTitle(doc.pageTitle);
+        window.MDNWorker &&
+        window.MDNWorker.setTitle(doc.pageTitle);
       MDN_APP_ANDROID &&
         window.Android &&
         window.Android.setTitle(doc.pageTitle);

@@ -238,16 +238,14 @@ export function App(appProps) {
                 </StandardLayout>
               }
             />
-            {MDN_APP_DESKTOP && (
-              <Route
-                path="/app-settings"
-                element={
-                  <StandardLayout>
-                    <AppSettings {...appProps} />
-                  </StandardLayout>
-                }
-              />
-            )}
+            <Route
+              path="/app-settings"
+              element={
+                <StandardLayout>
+                  <AppSettings {...appProps} />
+                </StandardLayout>
+              }
+            />
             <Route
               path="/docs/*"
               element={

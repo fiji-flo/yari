@@ -32,7 +32,7 @@ export default function SignOut() {
     let signOut = async () => {};
     if (MDN_APP_DESKTOP) {
       signOut = async () => {
-        await window.Desktop.signOut();
+        await window.MDNWorker.signOut();
       };
     } else if (MDN_APP_ANDROID) {
       signOut = async () => {

@@ -48,3 +48,6 @@ if (container.firstElementChild) {
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 // serviceWorker.unregister();
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/serviceWorker.js");
+}

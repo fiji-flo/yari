@@ -5,7 +5,7 @@ export default function AppLogin({ className, children }) {
   let signIn = async () => {};
   if (MDN_APP_DESKTOP) {
     signIn = async () => {
-      await window.Desktop.signIn();
+      await window.MDNWorker.signIn();
     };
   } else if (MDN_APP_ANDROID) {
     signIn = async () => {

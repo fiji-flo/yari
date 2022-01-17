@@ -6,7 +6,6 @@ import "./index.scss";
 import { useEffect, useState } from "react";
 import UpdateButton from "./update";
 import ClearButton from "./clear";
-import { MDN_APP_DESKTOP } from "../constants";
 
 export default function SettingsApp({ ...appProps }) {
   return (
@@ -23,7 +22,7 @@ export default function SettingsApp({ ...appProps }) {
 }
 
 function Settings() {
-  MDN_APP_DESKTOP && window.Desktop.setTitle("Settings");
+  document.title = "MDN - Settings";
   const [status, setStatus] = useState<UpdateStatus>();
   const [delay, setDelay] = useState<number | null>(
     !status || status?.state === STATE.init ? 500 : null
@@ -33,20 +32,20 @@ function Settings() {
 
   useEffect(() => {
     const init = async () => {
-      setSettings(await window.Desktop.offlineSettings());
-      setStatus(await window.Desktop.updateAvailable());
-      await window.Desktop.updateUser();
+      setSettings(await window.MDNWorker.offlineSettings());
+      //setStatus(await window.MDNWorker.updateAvailable());
+      await window.MDNWorker.updateUser();
     };
     init();
   }, []);
 
   const updateSettings = async (change: SettingsData) => {
-    let newSettings = await window.Desktop.setOfflineSettings(change);
+    let newSettings = await window.MDNWorker.setOfflineSettings(change);
     setSettings(newSettings);
   };
 
   useInterval(async () => {
-    const next = await window.Desktop.updateStatus();
+    const next = await window.MDNWorker.updateStatus();
     if (next.state === STATE.nothing || next.state === STATE.updateAvailable) {
       setDelay(null);
     }
@@ -60,7 +59,7 @@ function Settings() {
   }, delay);
 
   const update = () => {
-    window.Desktop.update();
+    window.MDNWorker.update();
     setDelay(500);
     setStatus(status);
   };
@@ -69,7 +68,7 @@ function Settings() {
     if (
       window.confirm("All downloaded content will be removed from your device")
     ) {
-      window.Desktop.clear();
+      window.MDNWorker.clear();
       setDelay(500);
       setStatus(status);
     }
@@ -91,6 +90,8 @@ function Settings() {
             updateSettings({
               offline: e.target.checked,
               autoUpdates: null,
+              currentVersion: null,
+              currentDate: null,
             })
           }
         ></Switch>
@@ -113,6 +114,8 @@ function Settings() {
               updateSettings({
                 offline: null,
                 autoUpdates: e.target.checked,
+                currentVersion: null,
+                currentDate: null,
               })
             }
           ></Switch>
