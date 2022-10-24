@@ -10,6 +10,7 @@ import {
   useDocumentURL,
   useCopyExamplesToClipboard,
   usePersistFrequentlyViewed,
+  useRunkit,
 } from "./hooks";
 import { Doc } from "../../../libs/types/document";
 // Ingredients
@@ -102,6 +103,7 @@ export function Document(props /* TODO: define a TS interface for this */) {
     }
   );
   usePersistFrequentlyViewed(doc);
+  useRunkit(doc);
   useCopyExamplesToClipboard(doc);
 
   React.useEffect(() => {

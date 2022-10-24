@@ -11,6 +11,39 @@ export function useDocumentURL() {
   // pathname with the document's mdn_url.
   return url.endsWith("/") ? url.substring(0, url.length - 1) : url;
 }
+declare global {
+  interface Window {
+    RunKit;
+  }
+}
+
+export function useRunkit(doc: Doc | undefined) {
+  const location = useLocation();
+  const isServer = useIsServer();
+
+  useEffect(() => {
+    if (isServer) {
+      return;
+    }
+
+    if (!doc) {
+      return;
+    }
+
+    [...document.querySelectorAll("div.code-example pre:not(.hidden)")]
+      .filter(
+        (element) =>
+          element.classList.contains("js") &&
+          element?.textContent?.includes("require(")
+      )
+      .forEach((element) => {
+        const code = element.textContent;
+        const parent = element.parentElement;
+        element.remove();
+        window.RunKit.createNotebook({ element: parent, source: code });
+      });
+  }, [doc, location, isServer]);
+}
 
 export function useCopyExamplesToClipboard(doc: Doc | undefined) {
   const location = useLocation();
