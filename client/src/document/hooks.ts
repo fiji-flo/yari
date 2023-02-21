@@ -32,61 +32,50 @@ export function useCopyExamplesToClipboard(doc: Doc | undefined) {
       return;
     }
 
-    [...document.querySelectorAll("div.code-example pre:not(.hidden)")].forEach(
-      (element) => {
-        const wrapper = element.parentElement;
-        // No idea how a parentElement could be falsy in practice, but it can
-        // in theory and hence in TypeScript. So to having to test for it, bail
-        // early if we have to.
-        if (!wrapper) return;
+    const editors = [
+      ...document.querySelectorAll("div.code-example pre:not(.hidden)"),
+    ].map((element) => {
+      const wrapper = element.parentElement;
+      // No idea how a parentElement could be falsy in practice, but it can
+      // in theory and hence in TypeScript. So to having to test for it, bail
+      // early if we have to.
+      if (!wrapper) return;
+      const button = document.createElement("button");
+      const span = document.createElement("span");
+      const liveregion = document.createElement("span");
 
-        const button = document.createElement("button");
-        const span = document.createElement("span");
-        const liveregion = document.createElement("span");
+      span.textContent = "Copy to Clipboard";
 
-        span.textContent = "Copy to Clipboard";
+      button.setAttribute("type", "button");
+      button.setAttribute("class", "icon copy-icon");
+      span.setAttribute("class", "visually-hidden");
+      liveregion.classList.add("copy-icon-message", "visually-hidden");
+      liveregion.setAttribute("role", "alert");
+      liveregion.style.top = "52px";
 
-        button.setAttribute("type", "button");
-        button.setAttribute("class", "icon copy-icon");
-        span.setAttribute("class", "visually-hidden");
-        liveregion.classList.add("copy-icon-message", "visually-hidden");
-        liveregion.setAttribute("role", "alert");
-        liveregion.style.top = "52px";
+      button.appendChild(span);
+      wrapper.appendChild(button);
+      wrapper.appendChild(liveregion);
+      let editor;
 
-        button.appendChild(span);
-        wrapper.appendChild(button);
-        wrapper.appendChild(liveregion);
+      button.onclick = async () => {
+        await Promise.all([]);
 
-        button.onclick = async () => {
-          let copiedSuccessfully = true;
-          try {
-            const text = element.textContent || "";
-            await navigator.clipboard.writeText(text);
-          } catch (err) {
-            console.error(
-              "Error when trying to use navigator.clipboard.writeText()",
-              err
-            );
-            copiedSuccessfully = false;
-          }
-
-          if (copiedSuccessfully) {
-            button.classList.add("copied");
-            showCopiedMessage(wrapper, "Copied!");
-          } else {
-            button.classList.add("failed");
-            showCopiedMessage(wrapper, "Error trying to copy to clipboard!");
-          }
-
-          setTimeout(
-            () => {
-              hideCopiedMessage(wrapper);
-            },
-            copiedSuccessfully ? 1000 : 3000
-          );
-        };
-      }
-    );
+        const monaco = await import("monaco-editor/esm/vs/editor/editor.main");
+        const text = element.textContent || "";
+        const language = element.classList[1];
+        wrapper.innerHTML = "";
+        console.log(language);
+        editor = monaco.editor.create(wrapper, {
+          value: text,
+          language: language === "js" ? "javascript" : language,
+          minimap: { enabled: false },
+          automaticLayout: true,
+        });
+      };
+      return editor;
+    });
+    return () => editors.forEach((editor) => editor?.dispose?.());
   }, [doc, location, isServer]);
 }
 
