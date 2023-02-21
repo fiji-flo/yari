@@ -25,6 +25,7 @@ import { useGleanPage } from "./telemetry/glean-context";
 import { MainContentContainer } from "./ui/atoms/page-content";
 import { Loading } from "./ui/atoms/loading";
 import { Advertising } from "./advertising";
+import { Playground } from "./playground";
 
 const AllFlaws = React.lazy(() => import("./flaws"));
 const Translations = React.lazy(() => import("./translations"));
@@ -158,6 +159,7 @@ export function App(appProps) {
         time it hits any React code.
        */}
       <Route path="/" element={homePage} />
+      <Route path="/play" element={<Playground></Playground>} />
       <Route
         path="/:locale/*"
         element={
