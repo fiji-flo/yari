@@ -23,26 +23,41 @@ self.MonacoEnvironment = {
 
 export default function Editor({
   v,
+  n,
   language,
 }: {
-  v: MutableRefObject<string>;
+  v: string;
+  n: (string) => void;
   language: string;
 }) {
   const divEl = useRef<HTMLDivElement>(null);
-  let editor: monaco.editor.IStandaloneCodeEditor;
+  let editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   useEffect(() => {
-    if (divEl.current) {
-      editor = monaco.editor.create(divEl.current, {
-        value: v.current,
+    console.log(divEl.current, editor.current);
+    if (divEl.current && editor.current !== null) {
+      if (editor.current.getValue() !== v) {
+        editor.current.setValue(v);
+      }
+    }
+    if (divEl.current && editor.current === null) {
+      editor.current = monaco.editor.create(divEl.current, {
+        value: v,
         language,
+        minimap: { enabled: false },
+        automaticLayout: true,
       });
-      editor.onDidChangeModelContent((e) => {
-        v.current = editor.getValue();
+      editor.current.onDidChangeModelContent((e) => {
+        if (editor.current) {
+          n(editor.current.getValue());
+        }
       });
     }
-    return () => {
-      editor.dispose();
-    };
-  }, []);
-  return <div className="editor" ref={divEl}></div>;
+    return () => {};
+  }, [v]);
+  return (
+    <div className="editor-container">
+      <label>{language.toUpperCase()}</label>
+      <div className="editor" ref={divEl}></div>
+    </div>
+  );
 }
