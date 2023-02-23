@@ -11,6 +11,10 @@ import "./index.scss";
 
 const Editor = React.lazy(() => import("./editor"));
 
+const HTML_DEFAULT = "<!-- HTML goes here -->";
+const CSS_DEFAULT = "/* CSS goes here */";
+const JS_DEFAULT = "/* JavaScript goes here */";
+
 export interface State {
   css: string;
   html: string;
@@ -54,7 +58,7 @@ async function save(state: State) {
 }
 
 export function Playground() {
-  let [searchParams] = useSearchParams();
+  let [searchParams, setSearchParams] = useSearchParams();
   let [url, setUrl] = useState<string | null>(null);
   let [prompt, setPrompt] = useState<string>("");
   let gistId = searchParams.get("gist");
@@ -78,17 +82,15 @@ export function Playground() {
   //let html = useRef<string>(code?.html ?? "<!-- here be dinos -->");
   //let css = useRef<string>(code?.css ?? "/* here be dinos */");
   //let js = useRef<string>(code?.js ?? "/* here be dinos */");
-  let [html, setHtml] = useState<string>(
-    code?.html ?? "<!-- here be dinos -->"
-  );
-  let [css, setCss] = useState<string>(code?.css ?? "/* here be dinos */");
-  let [js, setJs] = useState<string>(code?.js ?? "/* here be dinos */");
+  let [html, setHtml] = useState<string>(code?.html ?? HTML_DEFAULT);
+  let [css, setCss] = useState<string>(code?.css ?? CSS_DEFAULT);
+  let [js, setJs] = useState<string>(code?.js ?? JS_DEFAULT);
   useEffect(() => {
     if (code) {
       console.log(code);
-      setHtml(code.html);
-      setCss(code.css);
-      setJs(code.js);
+      setHtml(code.html || HTML_DEFAULT);
+      setCss(code.css || CSS_DEFAULT);
+      setJs(code.js || JS_DEFAULT);
       //html.current = code.html;
       //css.current = code.css;
       //js.current = code.js;
@@ -113,9 +115,17 @@ export function Playground() {
     });
     const code = await res.json();
     askRef.current?.close();
-    setHtml(code.html);
-    setCss(code.css);
-    setJs(code.js);
+    setHtml(code.html || HTML_DEFAULT);
+    setCss(code.css || CSS_DEFAULT);
+    setJs(code.js || JS_DEFAULT);
+  };
+  const reset = async () => {
+    if (window.confirm("Do you really want to reset everything?")) {
+      setSearchParams([]);
+      setHtml(HTML_DEFAULT);
+      setCss(CSS_DEFAULT);
+      setJs(JS_DEFAULT);
+    }
   };
   return (
     <>
@@ -161,6 +171,7 @@ export function Playground() {
             >
               share
             </Button>
+            <Button onClickHandler={reset}>reset</Button>
           </aside>
           <Editor v={html} n={setHtml} language="html"></Editor>
           <Editor v={css} n={setCss} language="css"></Editor>

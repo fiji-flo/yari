@@ -51,10 +51,15 @@ main.play {
       .editor-container {
         display: flex;
         flex-direction: column;
+        border: 1px solid var(--border-primary);
+        background-color: var(--background-secondary);
+
+        label {
+          padding: 0.25rem;
+        }
 
         .editor {
           height: 100%;
-          max-height: 25vh;
           margin: 0.5rem 0;
         }
       }
