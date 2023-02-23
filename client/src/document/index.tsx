@@ -10,6 +10,7 @@ import {
   useDocumentURL,
   useCopyExamplesToClipboard,
   useMakeInteractive,
+  useExplainSnippet,
 } from "./hooks";
 import { Doc } from "../../../libs/types/document";
 // Ingredients
@@ -118,6 +119,7 @@ export function Document(props /* TODO: define a TS interface for this */) {
   useIncrementFrequentlyViewed(doc);
   useMakeInteractive(doc);
   useCopyExamplesToClipboard(doc);
+  useExplainSnippet(doc);
 
   React.useEffect(() => {
     if (!doc && !error) {
