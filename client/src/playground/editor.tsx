@@ -1,5 +1,9 @@
 import { useRef, useEffect, MutableRefObject } from "react";
-import * as monaco from "monaco-editor";
+import { EditorView, basicSetup } from "codemirror";
+import { EditorState } from "@codemirror/state";
+import { javascript } from "@codemirror/lang-javascript";
+import { css } from "@codemirror/lang-css";
+import { html } from "@codemirror/lang-html";
 
 // @ts-ignore
 // eslint-disable-next-line no-restricted-globals
@@ -21,6 +25,19 @@ self.MonacoEnvironment = {
   },
 };
 
+function lang(language) {
+  switch (language) {
+    case "javascript":
+      return [javascript()];
+    case "html":
+      return [html()];
+    case "css":
+      return [css()];
+    default:
+      return [];
+  }
+}
+
 export default function Editor({
   v,
   n,
@@ -31,26 +48,29 @@ export default function Editor({
   language: string;
 }) {
   const divEl = useRef<HTMLDivElement>(null);
-  let editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  let editor = useRef<EditorView | null>(null);
   useEffect(() => {
     console.log(divEl.current, editor.current);
     if (divEl.current && editor.current !== null) {
-      if (editor.current.getValue() !== v) {
-        editor.current.setValue(v);
+      if (editor.current.state.doc.toString() !== v) {
+        editor.current.dispatch({ changes: { from: 0, insert: v } });
       }
     }
     if (divEl.current && editor.current === null) {
-      editor.current = monaco.editor.create(divEl.current, {
-        value: v,
-        language,
-        minimap: { enabled: false },
-        automaticLayout: true,
+      let startState = EditorState.create({
+        doc: v,
+        extensions: [basicSetup, ...lang(language)],
       });
-      editor.current.onDidChangeModelContent((e) => {
-        if (editor.current) {
-          n(editor.current.getValue());
-        }
+
+      editor.current = new EditorView({
+        state: startState,
+        parent: divEl.current,
       });
+      //editor.current.onDidChangeModelContent((e) => {
+      //  if (editor.current) {
+      //    n(editor.current.getValue());
+      //  }
+      //});
     }
     return () => {};
   }, [v, n, language]);
