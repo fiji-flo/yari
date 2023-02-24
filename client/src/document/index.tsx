@@ -6,7 +6,11 @@ import { CRUD_MODE } from "../env";
 import { useGA } from "../ga-context";
 import { useIsServer } from "../hooks";
 
-import { useDocumentURL, useCopyExamplesToClipboard } from "./hooks";
+import {
+  useDocumentURL,
+  useCopyExamplesToClipboard,
+  useExplainSnippet,
+} from "./hooks";
 import { Doc } from "../../../libs/types/document";
 // Ingredients
 import { Prose } from "./ingredients/prose";
@@ -113,6 +117,7 @@ export function Document(props /* TODO: define a TS interface for this */) {
   );
   useIncrementFrequentlyViewed(doc);
   useCopyExamplesToClipboard(doc);
+  useExplainSnippet(doc);
 
   React.useEffect(() => {
     if (!doc && !error) {
