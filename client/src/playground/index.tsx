@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { Placement } from "../document/organisms/toc/placement";
 import { Button } from "../ui/atoms/button";
+import { Loading } from "../ui/atoms/loading";
 import { Logo } from "../ui/atoms/logo";
 import { Footer } from "../ui/organisms/footer";
 import { TopNavigationMain } from "../ui/organisms/top-navigation-main";
@@ -20,8 +21,6 @@ export interface State {
   html: string;
   js: string;
 }
-
-const EMPTY_STATE = { css: "", html: "", js: "" };
 
 export interface Message {
   typ: string;
@@ -61,6 +60,7 @@ export function Playground() {
   let [searchParams, setSearchParams] = useSearchParams();
   let [url, setUrl] = useState<string | null>(null);
   let [prompt, setPrompt] = useState<string>("");
+  let [loading, setLoading] = useState(false);
   let gistId = searchParams.get("gist");
   let { data: code } = useSWR(
     gistId ? `/api/v1/play/${gistId}` : null,
@@ -79,9 +79,6 @@ export function Playground() {
       revalidateOnReconnect: false,
     }
   );
-  //let html = useRef<string>(code?.html ?? "<!-- here be dinos -->");
-  //let css = useRef<string>(code?.css ?? "/* here be dinos */");
-  //let js = useRef<string>(code?.js ?? "/* here be dinos */");
   let [html, setHtml] = useState<string>(code?.html ?? HTML_DEFAULT);
   let [css, setCss] = useState<string>(code?.css ?? CSS_DEFAULT);
   let [js, setJs] = useState<string>(code?.js ?? JS_DEFAULT);
@@ -91,10 +88,6 @@ export function Playground() {
       setHtml(code.html || HTML_DEFAULT);
       setCss(code.css || CSS_DEFAULT);
       setJs(code.js || JS_DEFAULT);
-      //html.current = code.html;
-      //css.current = code.css;
-      //js.current = code.js;
-      //console.log(html.current);
     }
   }, [code]);
   const iframe = useRef<HTMLIFrameElement | null>(null);
@@ -102,10 +95,9 @@ export function Playground() {
   const askRef = useRef<HTMLDialogElement | null>(null);
   const iframeRef = useCallback((node: HTMLIFrameElement | null) => {
     iframe.current = node;
-    //update(node, { css: css.current, js: js.current, html: html.current });
-    update(node, { css, js, html });
   }, []);
   const ask = async (prompt) => {
+    setLoading(true);
     const res = await fetch("/api/v1/chat/generate", {
       method: "POST",
       headers: {
@@ -114,6 +106,7 @@ export function Playground() {
       body: JSON.stringify({ prompt: JSON.stringify(prompt) }),
     });
     const code = await res.json();
+    setLoading(false);
     askRef.current?.close();
     setHtml(code.html || HTML_DEFAULT);
     setCss(code.css || CSS_DEFAULT);
@@ -139,13 +132,19 @@ export function Playground() {
         </dialog>
         <dialog id="askDialog" ref={askRef}>
           <div>
-            <label>What do you seek?</label>
-            <textarea
-              cols={40}
-              rows={5}
-              onChange={(e) => setPrompt(e.target.value)}
-            ></textarea>
-            <Button onClickHandler={() => ask(prompt)}>Submit</Button>
+            {loading ? (
+              <Loading />
+            ) : (
+              <>
+                <label>I want to build...</label>
+                <textarea
+                  cols={40}
+                  rows={5}
+                  onChange={(e) => setPrompt(e.target.value)}
+                ></textarea>
+                <Button onClickHandler={() => ask(prompt)}>Submit</Button>
+              </>
+            )}
           </div>
         </dialog>
         <section className="editors">
@@ -178,7 +177,7 @@ export function Playground() {
           <Editor v={js} n={setJs} language="javascript"></Editor>
         </section>
         <section className="preview">
-          <iframe ref={iframeRef} src="./runner.html"></iframe>
+          <iframe title="runner" ref={iframeRef} src="./runner.html"></iframe>
           <Placement></Placement>
         </section>
       </main>
