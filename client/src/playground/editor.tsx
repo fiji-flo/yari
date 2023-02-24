@@ -53,7 +53,7 @@ export default function Editor({
       });
     }
     return () => {};
-  }, [v]);
+  }, [v, n, language]);
   return (
     <div className="editor-container">
       <label>{language.toUpperCase()}</label>

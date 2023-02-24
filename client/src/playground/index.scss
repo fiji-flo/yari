@@ -1,12 +1,12 @@
 .play-menu {
+  background-color: var(--background-primary);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   padding: 0 1rem;
   position: sticky;
-  background-color: var(--background-primary);
-  border-bottom: 1px solid var(--border-primary);
-  z-index: 1;
   top: 0;
+  z-index: 1;
 
   .top-navigation-main {
     justify-content: flex-end;
@@ -14,21 +14,23 @@
 }
 
 main.play {
+  background-color: var(--background-primary);
   display: grid;
   grid-template-columns: 1fr 1fr;
   max-width: 100%;
   min-height: calc(100vh - var(--main-document-header-height));
-  background-color: var(--background-primary);
   padding: 1rem;
 
   dialog {
     z-index: 1;
 
     &#askDialog > div {
+      align-items: center;
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 0.5rem;
+      min-height: 15rem;
+      min-width: 20rem;
     }
   }
 
@@ -40,8 +42,8 @@ main.play {
 
       aside {
         display: flex;
-        justify-content: end;
         gap: 1rem;
+        justify-content: end;
 
         button {
           min-width: 6rem;
@@ -49,10 +51,10 @@ main.play {
       }
 
       .editor-container {
+        background-color: var(--background-secondary);
+        border: 1px solid var(--border-primary);
         display: flex;
         flex-direction: column;
-        border: 1px solid var(--border-primary);
-        background-color: var(--background-secondary);
 
         label {
           padding: 0.25rem;
@@ -61,14 +63,19 @@ main.play {
         .editor {
           height: 100%;
           margin: 0.5rem 0;
+
+          .monaco-editor {
+            min-height: 10rem;
+            width: 100%;
+          }
         }
       }
     }
 
     &.preview {
+      align-items: center;
       display: flex;
       flex-direction: column;
-      align-items: center;
 
       .place {
         max-width: 20rem;
@@ -84,8 +91,8 @@ main.play {
       }
 
       iframe {
-        width: 95%;
         height: calc(100% - 15rem);
+        width: 95%;
       }
     }
   }
