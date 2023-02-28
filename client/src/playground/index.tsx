@@ -7,6 +7,7 @@ import { Loading } from "../ui/atoms/loading";
 import { Logo } from "../ui/atoms/logo";
 import { Footer } from "../ui/organisms/footer";
 import { TopNavigationMain } from "../ui/organisms/top-navigation-main";
+import { EditorHandle } from "./editor";
 
 import "./index.scss";
 
@@ -79,16 +80,14 @@ export function Playground() {
       revalidateOnReconnect: false,
     }
   );
-  let [html, setHtml] = useState<string>(code?.html ?? HTML_DEFAULT);
-  let [css, setCss] = useState<string>(code?.css ?? CSS_DEFAULT);
-  let [js, setJs] = useState<string>(code?.js ?? JS_DEFAULT);
+  let htmlRef = useRef<EditorHandle | null>(null);
+  let cssRef = useRef<EditorHandle | null>(null);
+  let jsRef = useRef<EditorHandle | null>(null);
   useEffect(() => {
-    if (code) {
-      console.log(code);
-      setHtml(code.html || HTML_DEFAULT);
-      setCss(code.css || CSS_DEFAULT);
-      setJs(code.js || JS_DEFAULT);
-    }
+    console.log(code);
+    htmlRef.current?.setContent(code?.html || HTML_DEFAULT);
+    cssRef.current?.setContent(code?.css || CSS_DEFAULT);
+    jsRef.current?.setContent(code?.js || JS_DEFAULT);
   }, [code]);
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const diaRef = useRef<HTMLDialogElement | null>(null);
@@ -108,17 +107,25 @@ export function Playground() {
     const code = await res.json();
     setLoading(false);
     askRef.current?.close();
-    setHtml(code.html || HTML_DEFAULT);
-    setCss(code.css || CSS_DEFAULT);
-    setJs(code.js || JS_DEFAULT);
+    htmlRef.current?.setContent(code.html || HTML_DEFAULT);
+    cssRef.current?.setContent(code.css || CSS_DEFAULT);
+    jsRef.current?.setContent(code.js || JS_DEFAULT);
   };
   const reset = async () => {
     if (window.confirm("Do you really want to reset everything?")) {
       setSearchParams([]);
-      setHtml(HTML_DEFAULT);
-      setCss(CSS_DEFAULT);
-      setJs(JS_DEFAULT);
+      htmlRef.current?.setContent(HTML_DEFAULT);
+      cssRef.current?.setContent(CSS_DEFAULT);
+      jsRef.current?.setContent(JS_DEFAULT);
     }
+  };
+
+  const getState = () => {
+    return {
+      html: htmlRef.current?.getContent() || HTML_DEFAULT,
+      css: cssRef.current?.getContent() || CSS_DEFAULT,
+      js: jsRef.current?.getContent() || JS_DEFAULT,
+    };
   };
   return (
     <>
@@ -156,14 +163,12 @@ export function Playground() {
             >
               ask
             </Button>
-            <Button
-              onClickHandler={() => update(iframe.current, { css, js, html })}
-            >
+            <Button onClickHandler={() => update(iframe.current, getState())}>
               run
             </Button>
             <Button
               onClickHandler={async () => {
-                const url = await save({ css, js, html });
+                const url = await save(getState());
                 setUrl(url.toString());
                 diaRef.current?.showModal();
               }}
@@ -172,9 +177,9 @@ export function Playground() {
             </Button>
             <Button onClickHandler={reset}>reset</Button>
           </aside>
-          <Editor v={html} n={setHtml} language="html"></Editor>
-          <Editor v={css} n={setCss} language="css"></Editor>
-          <Editor v={js} n={setJs} language="javascript"></Editor>
+          <Editor ref={htmlRef} language="html"></Editor>
+          <Editor ref={cssRef} language="css"></Editor>
+          <Editor ref={jsRef} language="javascript"></Editor>
         </section>
         <section className="preview">
           <iframe title="runner" ref={iframeRef} src="./runner.html"></iframe>
