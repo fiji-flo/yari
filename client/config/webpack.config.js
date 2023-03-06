@@ -18,7 +18,6 @@ import getCSSModuleLocalIdent from "react-dev-utils/getCSSModuleLocalIdent.js";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ModuleNotFoundPlugin from "react-dev-utils/ModuleNotFoundPlugin.js";
 import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
-import MonacoEditorWebpackPlugin from "monaco-editor-webpack-plugin";
 
 import paths from "./paths.js";
 import modules from "./modules.js";
@@ -569,10 +568,6 @@ function config(webpackEnv) {
       ].filter(Boolean),
     },
     plugins: [
-      new MonacoEditorWebpackPlugin({
-        languages: ["javascript", "typescript", "html", "css"],
-        publicPath: "/",
-      }),
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(
         Object.assign(
