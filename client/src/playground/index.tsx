@@ -57,10 +57,20 @@ async function save(state: State) {
   return url;
 }
 
+function modified(old: State | undefined, current: State | undefined): boolean {
+  return (
+    old?.css !== current?.css ||
+    old?.html !== current?.html ||
+    old?.js !== current?.js
+  );
+}
+
 export function Playground() {
   let [searchParams, setSearchParams] = useSearchParams();
   let [url, setUrl] = useState<string | null>(null);
   let [prompt, setPrompt] = useState<string>("");
+  let [context, setContext] = useState<Object | undefined>(undefined);
+  let [remoteCode, setRemoteCode] = useState<State | undefined>(undefined);
   let [loading, setLoading] = useState(false);
   let gistId = searchParams.get("gist");
   let { data: code } = useSWR(
@@ -92,6 +102,7 @@ export function Playground() {
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const diaRef = useRef<HTMLDialogElement | null>(null);
   const askRef = useRef<HTMLDialogElement | null>(null);
+  const refRef = useRef<HTMLDialogElement | null>(null);
   const iframeRef = useCallback((node: HTMLIFrameElement | null) => {
     iframe.current = node;
   }, []);
@@ -102,14 +113,39 @@ export function Playground() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt: JSON.stringify(prompt) }),
+      body: JSON.stringify({ prompt }),
     });
-    const code = await res.json();
+    const { code, context } = await res.json();
     setLoading(false);
+    setContext(context);
+    setRemoteCode(code);
     askRef.current?.close();
     htmlRef.current?.setContent(code.html || HTML_DEFAULT);
     cssRef.current?.setContent(code.css || CSS_DEFAULT);
     jsRef.current?.setContent(code.js || JS_DEFAULT);
+  };
+  const refine = async (prompt) => {
+    setLoading(true);
+    const current = getState();
+    const res = await fetch("/api/v1/chat/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        modified(remoteCode, current)
+          ? { prompt, code: current, context }
+          : { prompt, context }
+      ),
+    });
+    const { code, context: ctx } = await res.json();
+    setLoading(false);
+    setContext(ctx);
+    setRemoteCode(code);
+    refRef.current?.close();
+    code.html && htmlRef.current?.setContent(code.html);
+    code.css && cssRef.current?.setContent(code.css);
+    code.js && jsRef.current?.setContent(code.js);
   };
   const reset = async () => {
     if (window.confirm("Do you really want to reset everything?")) {
@@ -137,6 +173,23 @@ export function Playground() {
         <dialog id="playDialog" ref={diaRef}>
           {url && <a href={url}>{url}</a>}
         </dialog>
+        <dialog id="refineDialog" ref={refRef}>
+          <div>
+            {loading ? (
+              <Loading />
+            ) : (
+              <>
+                <label>Change...</label>
+                <textarea
+                  cols={40}
+                  rows={5}
+                  onChange={(e) => setPrompt(e.target.value)}
+                ></textarea>
+                <Button onClickHandler={() => refine(prompt)}>Submit</Button>
+              </>
+            )}
+          </div>
+        </dialog>
         <dialog id="askDialog" ref={askRef}>
           <div>
             {loading ? (
@@ -156,6 +209,13 @@ export function Playground() {
         </dialog>
         <section className="editors">
           <aside>
+            <Button
+              onClickHandler={() => {
+                refRef.current?.showModal();
+              }}
+            >
+              change
+            </Button>
             <Button
               onClickHandler={() => {
                 askRef.current?.showModal();

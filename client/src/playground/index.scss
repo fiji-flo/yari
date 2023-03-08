@@ -24,6 +24,7 @@ main.play {
   dialog {
     z-index: 1;
 
+    &#refineDialog > div,
     &#askDialog > div {
       align-items: center;
       display: flex;
