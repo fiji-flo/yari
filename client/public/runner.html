@@ -12,7 +12,7 @@
         if (prop === 'log' || prop === 'error' || prop === 'warn') {
           return (...args) => {
             const message = args.join(' ');
-            window.parent.postMessage({ typ: "console", prop, message}, "*");
+            window.parent.postMessage({ typ: "console", prop, message }, "*");
             target[prop](...args);
           }
         }
@@ -23,7 +23,7 @@
     window.console = consoleProxy;
 
     function init(state) {
-      window.parent.postMessage({ typ: "console", prop: "clear"}, "*");
+      window.parent.postMessage({ typ: "console", prop: "clear" }, "*");
       const style = document.head.querySelector("#style");
       style.innerHTML = state.css;
       document.head.appendChild(style);
@@ -32,11 +32,7 @@
       try {
         eval(state.js);
       } catch (err) {
-        const pre = document.createElement("pre");
-        pre.appendChild(
-          document.createTextNode(`${err}: ${(err).state}`)
-        );
-        document.body.insertBefore(pre, document.body.firstChild);
+        console.error(err);
       }
     }
     window.addEventListener("message", (event) => {

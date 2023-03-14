@@ -84,7 +84,7 @@ export const CSP_SCRIPT_SRC_VALUES = [
   // - Current hash:
   "'sha256-uogddBLIKmJa413dyT0iPejBg3VFcO+4x6B+vw3jng0='",
   // - runner.html:
-  "'sha256-HTRL7ugnWxguRO6rLW8LTehAw3d7TNduDI7SLdL84+w='",
+  "'sha256-hpuwFpFquwgp+tgltoLG0smg7b71Sxq8s7qi/ZOlEug='",
 ];
 export const CSP_DIRECTIVES = {
   "default-src": ["'self'"],
@@ -139,6 +139,7 @@ export const CSP_DIRECTIVES = {
     "interactive-examples.mdn.allizom.net",
 
     "wikipedia.org",
+    "upload.wikimedia.org",
 
     "www.google-analytics.com",
     "www.gstatic.com",

@@ -1,0 +1,18 @@
+.play-loader {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: auto;
+
+  svg {
+    animation: rotate 2s linear infinite;
+    height: 100px;
+    width: 100px;
+  }
+
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}

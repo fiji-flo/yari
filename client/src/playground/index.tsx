@@ -3,13 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { Placement } from "../document/organisms/toc/placement";
 import { Button } from "../ui/atoms/button";
-import { Loading } from "../ui/atoms/loading";
 import { Logo } from "../ui/atoms/logo";
 import { Footer } from "../ui/organisms/footer";
 import { TopNavigationMain } from "../ui/organisms/top-navigation-main";
 import { EditorHandle } from "./editor";
 
 import "./index.scss";
+import { PlayLoader } from "./loader";
 
 const Editor = React.lazy(() => import("./editor"));
 
@@ -173,8 +173,22 @@ export function Playground() {
   const iframeRef = useCallback((node: HTMLIFrameElement | null) => {
     iframe.current = node;
   }, []);
+  const reset = async () => {
+    setSearchParams([]);
+    htmlRef.current?.setContent(HTML_DEFAULT);
+    cssRef.current?.setContent(CSS_DEFAULT);
+    jsRef.current?.setContent(JS_DEFAULT);
+    resetIframe(iframe.current);
+  };
+  const resetConfirm = async () => {
+    if (window.confirm("Do you really want to reset everything?")) {
+      await reset();
+    }
+  };
+
   const ask = async (prompt) => {
     setLoading(true);
+    await reset();
     const res = await fetch("/api/v1/chat/generate", {
       method: "POST",
       headers: {
@@ -214,16 +228,6 @@ export function Playground() {
     code.css && cssRef.current?.setContent(code.css);
     code.js && jsRef.current?.setContent(code.js);
   };
-  const reset = async () => {
-    if (window.confirm("Do you really want to reset everything?")) {
-      setSearchParams([]);
-      htmlRef.current?.setContent(HTML_DEFAULT);
-      cssRef.current?.setContent(CSS_DEFAULT);
-      jsRef.current?.setContent(JS_DEFAULT);
-      resetIframe(iframe.current);
-    }
-  };
-
   const getEditorContent = () => {
     return {
       html: htmlRef.current?.getContent() || HTML_DEFAULT,
@@ -246,10 +250,10 @@ export function Playground() {
         <dialog id="refineDialog" ref={refRef}>
           <div>
             {loading ? (
-              <Loading />
+              <PlayLoader />
             ) : (
               <>
-                <label>Change...</label>
+                <label>I want to change things. Can you…</label>
                 <textarea
                   cols={40}
                   rows={5}
@@ -263,10 +267,10 @@ export function Playground() {
         <dialog id="askDialog" ref={askRef}>
           <div>
             {loading ? (
-              <Loading />
+              <PlayLoader />
             ) : (
               <>
-                <label>I want to build...</label>
+                <label>I want to build something. Can you…</label>
                 <textarea
                   cols={40}
                   rows={5}
@@ -303,7 +307,7 @@ export function Playground() {
             >
               share
             </Button>
-            <Button onClickHandler={reset}>reset</Button>
+            <Button onClickHandler={resetConfirm}>reset</Button>
           </aside>
           <Editor
             ref={htmlRef}
@@ -325,7 +329,7 @@ export function Playground() {
           <iframe
             title="runner"
             ref={iframeRef}
-            src="./runner.html"
+            src="http://localhost:5042/runner.html"
             sandbox="allow-scripts"
           ></iframe>
           <ul>
