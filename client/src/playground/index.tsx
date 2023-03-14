@@ -34,6 +34,15 @@ export interface Message {
   state: EditorContent;
 }
 
+export function resetIframe(iframe: HTMLIFrameElement | null) {
+  iframe?.contentWindow?.postMessage(
+    { typ: "reset" },
+    {
+      targetOrigin: "*",
+    }
+  );
+}
+
 export function update(
   iframe: HTMLIFrameElement | null,
   editorContent: EditorContent | null
@@ -92,6 +101,9 @@ export function Playground() {
   let [url, setUrl] = useState<string | null>(null);
   let [prompt, setPrompt] = useState<string>("");
   let [context, setContext] = useState<Object | undefined>(undefined);
+  let [vConsole, setVConsole] = useState<{ prop: string; message: string }[]>(
+    []
+  );
   let [remoteCode, setRemoteCode] = useState<EditorContent | undefined>(
     undefined
   );
@@ -124,6 +136,16 @@ export function Playground() {
   let htmlRef = useRef<EditorHandle | null>(null);
   let cssRef = useRef<EditorHandle | null>(null);
   let jsRef = useRef<EditorHandle | null>(null);
+  let messageListener = useCallback(({ data: { typ, prop, message } }) => {
+    console.log(message);
+    if (typ === "console") {
+      if (prop === "clear") {
+        setVConsole([]);
+      } else {
+        setVConsole((vConsole) => [...vConsole, { prop, message }]);
+      }
+    }
+  }, []);
   useEffect(() => {
     if (state === State.initial) {
       if (code && Object.values(code).some(Boolean)) {
@@ -138,7 +160,12 @@ export function Playground() {
       }
     }
   }, [code]);
-  console.log(code);
+  useEffect(() => {
+    window.addEventListener("message", messageListener);
+    return () => {
+      window.removeEventListener("message", messageListener);
+    };
+  }, []);
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const diaRef = useRef<HTMLDialogElement | null>(null);
   const askRef = useRef<HTMLDialogElement | null>(null);
@@ -193,6 +220,7 @@ export function Playground() {
       htmlRef.current?.setContent(HTML_DEFAULT);
       cssRef.current?.setContent(CSS_DEFAULT);
       jsRef.current?.setContent(JS_DEFAULT);
+      resetIframe(iframe.current);
     }
   };
 
@@ -300,6 +328,15 @@ export function Playground() {
             src="./runner.html"
             sandbox="allow-scripts"
           ></iframe>
+          <ul>
+            {vConsole.map(({ prop, message }) => {
+              return (
+                <li>
+                  <code>{message}</code>
+                </li>
+              );
+            })}
+          </ul>
           <Placement></Placement>
         </section>
       </main>

@@ -94,8 +94,25 @@ main.play {
       }
 
       iframe {
-        height: calc(100% - 15rem);
+        height: calc(100% - 18rem);
         width: 95%;
+      }
+
+      ul {
+        background-color: var(--code-background-inline);
+        width: 95%;
+        margin: 0.25rem;
+        max-height: 6rem;
+        height: 6rem;
+        overflow: scroll;
+
+        li {
+          padding: 0 1rem;
+
+          &::before {
+            content: ">";
+          }
+        }
       }
     }
   }
