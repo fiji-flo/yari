@@ -17,7 +17,13 @@ const HTML_DEFAULT = "<!-- HTML goes here -->";
 const CSS_DEFAULT = "/* CSS goes here */";
 const JS_DEFAULT = "/* JavaScript goes here */";
 
-export interface State {
+enum State {
+  initial,
+  remote,
+  modified,
+}
+
+export interface EditorContent {
   css: string;
   html: string;
   js: string;
@@ -25,31 +31,44 @@ export interface State {
 
 export interface Message {
   typ: string;
-  state: State;
+  state: EditorContent;
 }
 
-function update(iframe: HTMLIFrameElement | null, state: State | null) {
-  console.log(iframe, state);
-  if (!iframe || !state) {
+export function update(
+  iframe: HTMLIFrameElement | null,
+  editorContent: EditorContent | null
+) {
+  console.log(iframe?.contentDocument?.readyState, editorContent);
+  if (!iframe || !editorContent) {
     return;
   }
 
   const message: Message = {
     typ: "init",
-    state,
+    state: editorContent,
   };
-  iframe.contentWindow!.postMessage(message, {
-    targetOrigin: "*",
-  });
+  if (iframe.contentDocument?.readyState === "loading") {
+    iframe.contentDocument?.addEventListener("DOMContentLoaded", () => {
+      console.log("in the ****");
+      iframe.contentWindow!.postMessage(message, {
+        targetOrigin: "*",
+      });
+    });
+  } else {
+    console.log("wait what");
+    iframe.contentWindow!.postMessage(message, {
+      targetOrigin: "*",
+    });
+  }
 }
 
-async function save(state: State) {
+async function save(editorContent: EditorContent) {
   const res = await fetch("/api/v1/play/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ code: JSON.stringify(state) }),
+    body: JSON.stringify({ code: JSON.stringify(editorContent) }),
   });
   let { id } = await res.json();
   let url = new URL(document.URL);
@@ -57,7 +76,10 @@ async function save(state: State) {
   return url;
 }
 
-function modified(old: State | undefined, current: State | undefined): boolean {
+function modified(
+  old: EditorContent | undefined,
+  current: EditorContent | undefined
+): boolean {
   return (
     old?.css !== current?.css ||
     old?.html !== current?.html ||
@@ -70,9 +92,13 @@ export function Playground() {
   let [url, setUrl] = useState<string | null>(null);
   let [prompt, setPrompt] = useState<string>("");
   let [context, setContext] = useState<Object | undefined>(undefined);
-  let [remoteCode, setRemoteCode] = useState<State | undefined>(undefined);
+  let [remoteCode, setRemoteCode] = useState<EditorContent | undefined>(
+    undefined
+  );
   let [loading, setLoading] = useState(false);
+  let [state, setState] = useState(State.initial);
   let gistId = searchParams.get("gist");
+  let localKey = searchParams.get("local");
   let { data: code } = useSWR(
     gistId ? `/api/v1/play/${gistId}` : null,
     async (url) => {
@@ -88,17 +114,31 @@ export function Playground() {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      fallbackData:
+        (!gistId &&
+          localKey &&
+          JSON.parse(sessionStorage.getItem(localKey) || "{}")) ||
+        undefined,
     }
   );
   let htmlRef = useRef<EditorHandle | null>(null);
   let cssRef = useRef<EditorHandle | null>(null);
   let jsRef = useRef<EditorHandle | null>(null);
   useEffect(() => {
-    console.log(code);
-    htmlRef.current?.setContent(code?.html || HTML_DEFAULT);
-    cssRef.current?.setContent(code?.css || CSS_DEFAULT);
-    jsRef.current?.setContent(code?.js || JS_DEFAULT);
+    if (state === State.initial) {
+      if (code && Object.values(code).some(Boolean)) {
+        htmlRef.current?.setContent(code?.html);
+        cssRef.current?.setContent(code?.css);
+        jsRef.current?.setContent(code?.js);
+        setState(State.remote);
+      } else {
+        htmlRef.current?.setContent(HTML_DEFAULT);
+        cssRef.current?.setContent(CSS_DEFAULT);
+        jsRef.current?.setContent(JS_DEFAULT);
+      }
+    }
   }, [code]);
+  console.log(code);
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const diaRef = useRef<HTMLDialogElement | null>(null);
   const askRef = useRef<HTMLDialogElement | null>(null);
@@ -126,7 +166,7 @@ export function Playground() {
   };
   const refine = async (prompt) => {
     setLoading(true);
-    const current = getState();
+    const current = getEditorContent();
     const res = await fetch("/api/v1/chat/generate", {
       method: "POST",
       headers: {
@@ -156,13 +196,15 @@ export function Playground() {
     }
   };
 
-  const getState = () => {
+  const getEditorContent = () => {
     return {
       html: htmlRef.current?.getContent() || HTML_DEFAULT,
       css: cssRef.current?.getContent() || CSS_DEFAULT,
       js: jsRef.current?.getContent() || JS_DEFAULT,
     };
   };
+  const updateWithEditorContent = () =>
+    update(iframe.current, getEditorContent());
   return (
     <>
       <header className="play-menu">
@@ -223,12 +265,10 @@ export function Playground() {
             >
               ask
             </Button>
-            <Button onClickHandler={() => update(iframe.current, getState())}>
-              run
-            </Button>
+            <Button onClickHandler={updateWithEditorContent}>run</Button>
             <Button
               onClickHandler={async () => {
-                const url = await save(getState());
+                const url = await save(getEditorContent());
                 setUrl(url.toString());
                 diaRef.current?.showModal();
               }}
@@ -237,12 +277,29 @@ export function Playground() {
             </Button>
             <Button onClickHandler={reset}>reset</Button>
           </aside>
-          <Editor ref={htmlRef} language="html"></Editor>
-          <Editor ref={cssRef} language="css"></Editor>
-          <Editor ref={jsRef} language="javascript"></Editor>
+          <Editor
+            ref={htmlRef}
+            language="html"
+            callback={updateWithEditorContent}
+          ></Editor>
+          <Editor
+            ref={cssRef}
+            language="css"
+            callback={updateWithEditorContent}
+          ></Editor>
+          <Editor
+            ref={jsRef}
+            language="javascript"
+            callback={updateWithEditorContent}
+          ></Editor>
         </section>
         <section className="preview">
-          <iframe title="runner" ref={iframeRef} src="./runner.html"></iframe>
+          <iframe
+            title="runner"
+            ref={iframeRef}
+            src="./runner.html"
+            sandbox="allow-scripts"
+          ></iframe>
           <Placement></Placement>
         </section>
       </main>

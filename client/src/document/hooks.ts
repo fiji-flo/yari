@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useIsServer } from "../hooks";
 import { Doc } from "../../../libs/types/document";
+import { EditorContent, update } from "../playground";
+
+const LIVE_SAMPLE_PARTS = ["html", "css", "js"];
 
 export function useDocumentURL() {
   const { "*": slug, locale } = useParams();
@@ -12,6 +15,109 @@ export function useDocumentURL() {
   return url.endsWith("/") ? url.substring(0, url.length - 1) : url;
 }
 
+const HEADING_TAGS = ["h2", "h3", "h4", "h5", "h6"];
+
+export function useMakeInteractive(doc: Doc | undefined) {
+  const isServer = useIsServer();
+
+  useEffect(() => {
+    if (isServer) {
+      return;
+    }
+
+    if (!doc) {
+      return;
+    }
+    [...document.querySelectorAll("iframe")].forEach((iframe) => {
+      console.log(iframe.src);
+      const src = iframe.src;
+      if (!(src && src.toLowerCase().includes(`/runner.html`))) {
+        return;
+      }
+      const iframeId = iframe.id;
+      const id = iframeId.substring("frame_".length);
+      const section = document.querySelector(`#${id}`)?.parentElement;
+
+      if (!section) {
+        return;
+      }
+      const code: EditorContent = { css: "", html: "", js: "" };
+
+      const nodes: Element[] = [];
+      for (const part of LIVE_SAMPLE_PARTS) {
+        const src = [
+          ...section?.querySelectorAll(
+            `.${part}, pre[class*="brush:${part}"], pre[class*="${part};"]`
+          ),
+        ]
+          .map((e) => {
+            nodes.push(e);
+            return e.textContent;
+          })
+          .join("\n");
+        if (src) {
+          code[part] += src;
+        }
+      }
+      if (Object.values(code).every((v) => v === "")) {
+        const h = section.firstElementChild?.tagName.toLowerCase() || "h6";
+        let next = section.nextElementSibling;
+        while (
+          next?.firstElementChild?.tagName &&
+          HEADING_TAGS.includes(
+            next?.firstElementChild?.tagName?.toLowerCase() || ""
+          ) &&
+          next?.firstElementChild?.tagName?.toLowerCase() > h
+        ) {
+          for (const part of LIVE_SAMPLE_PARTS) {
+            const src = [
+              ...next?.querySelectorAll(
+                `.${part}, pre[class*="brush:${part}"], pre[class*="${part};"]`
+              ),
+            ]
+              .map((e) => {
+                nodes.push(e);
+                return e.textContent;
+              })
+              .join("\n");
+            if (src) {
+              code[part] += src;
+            }
+          }
+          next = next.nextElementSibling;
+        }
+      }
+      nodes.forEach((element) => {
+        const wrapper = element.parentElement;
+        // No idea how a parentElement could be falsy in practice, but it can
+        // in theory and hence in TypeScript. So to having to test for it, bail
+        // early if we have to.
+        if (!wrapper) return;
+
+        const button = document.createElement("button");
+        const span = document.createElement("span");
+
+        span.textContent = "Open in Playground";
+
+        button.setAttribute("type", "button");
+        button.setAttribute("class", "icon play-icon");
+        span.setAttribute("class", "visually-hidden");
+        button.appendChild(span);
+        wrapper.appendChild(button);
+
+        button.onclick = async () => {
+          const key = `play-${id}-${doc.mdn_url}`;
+          sessionStorage.setItem(key, JSON.stringify(code));
+          const url = new URL(window?.location.href);
+          url.pathname = "/play";
+          url.searchParams.set("local", key);
+          window.location.href = url.href;
+        };
+      });
+      setTimeout(() => update(iframe, code), 500);
+    });
+  }, [doc]);
+}
 export function useCopyExamplesToClipboard(doc: Doc | undefined) {
   const location = useLocation();
   const isServer = useIsServer();

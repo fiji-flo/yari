@@ -53,30 +53,42 @@ export interface EditorHandle {
 const Editor = forwardRef<EditorHandle, any>(function EditorInner(
   {
     language,
+    callback = () => {},
   }: {
     language: string;
+    callback: () => void;
   },
   ref
 ) {
+  const timer = useRef<number | null>(null);
   const divEl = useRef<HTMLDivElement>(null);
   let editor = useRef<EditorView | null>(null);
+  const updateListenerExtension = EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+      if (timer.current !== null && timer.current !== -1) {
+        clearTimeout(timer.current);
+      }
+      timer.current = window?.setTimeout(() => {
+        timer.current = -1;
+        callback();
+      }, 1000);
+    }
+  });
+  const lineWrapperExtension = EditorView.lineWrapping;
   useEffect(() => {
-    console.log(divEl.current, editor.current);
-
     if (divEl.current && editor.current === null) {
       let startState = EditorState.create({
-        extensions: [basicSetup, ...lang(language)],
+        extensions: [
+          basicSetup,
+          updateListenerExtension,
+          lineWrapperExtension,
+          ...lang(language),
+        ],
       });
-
       editor.current = new EditorView({
         state: startState,
         parent: divEl.current,
       });
-      //editor.current.onDidChangeModelContent((e) => {
-      //  if (editor.current) {
-      //    n(editor.current.getValue());
-      //  }
-      //});
     }
     return () => {};
   }, [language]);
@@ -91,7 +103,12 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
         setContent(content: string) {
           let state = EditorState.create({
             doc: content,
-            extensions: [basicSetup, ...lang(language)],
+            extensions: [
+              basicSetup,
+              updateListenerExtension,
+              lineWrapperExtension,
+              ...lang(language),
+            ],
           });
           editor.current?.setState(state);
         },
