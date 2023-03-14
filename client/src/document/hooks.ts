@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import { parse } from "marked";
 import { useIsServer } from "../hooks";
 import { Doc } from "../../../libs/types/document";
 import { EditorContent, update } from "../playground";
@@ -359,12 +360,6 @@ export function useExplainSnippet(doc: Doc | undefined) {
     const created: Element[] = [];
     const intervals: number[] = [];
 
-    let selection: Selection | null = null;
-    const mouseUpHandler: EventListener = (event) => {
-      selection = window.getSelection();
-    };
-    document.addEventListener("mouseup", mouseUpHandler);
-
     elements.forEach((element) => {
       const button = document.createElement("button");
       button.innerText = "Explain";
@@ -375,6 +370,18 @@ export function useExplainSnippet(doc: Doc | undefined) {
       button.addEventListener("click", async () => {
         if (button.disabled) return;
         button.disabled = true;
+
+        const selection = window.getSelection();
+        if (selection?.anchorNode) {
+          const range = document.createRange();
+          range.setStart(element, 0);
+          range.setEnd(selection?.anchorNode, 0);
+          if (range.commonAncestorContainer !== element) {
+            return;
+          }
+        } else {
+          return;
+        }
 
         const explanation =
           (element.querySelector("div.explain-text") as HTMLDivElement) ??
@@ -397,20 +404,14 @@ export function useExplainSnippet(doc: Doc | undefined) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prompt: `example:
-${"```"}
-${element.querySelector("code")?.textContent?.trim()}
-${"```"}
-explain the selection:
-${"```"}
-${selection?.toString()}
-${"```"}`,
+              code: element.querySelector("code")?.textContent?.trim(),
+              selection: selection?.toString().trim(),
             }),
           });
           button.disabled = false;
           const reply = (await res.json()).reply.trim();
           window.clearInterval(interval);
-          explanation.innerText = reply;
+          explanation.innerHTML = parse(reply);
 
           const footer = document.createElement("div");
           footer.className = "explain-text-footer";
@@ -425,7 +426,6 @@ ${"```"}`,
       });
     });
     return () => {
-      document.removeEventListener("mouseup", mouseUpHandler);
       created.forEach((element) => element.remove());
       intervals.forEach((id) => window.clearInterval(id));
     };
