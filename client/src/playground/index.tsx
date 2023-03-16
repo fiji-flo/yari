@@ -270,7 +270,7 @@ export function Playground() {
               <PlayLoader />
             ) : (
               <>
-                <label>I want to build something. Can you…</label>
+                <label>I want to build something. Give me…</label>
                 <textarea
                   cols={40}
                   rows={5}

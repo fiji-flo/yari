@@ -411,7 +411,10 @@ export function useExplainSnippet(doc: Doc | undefined) {
           button.disabled = false;
           const reply = (await res.json()).reply.trim();
           window.clearInterval(interval);
-          explanation.innerHTML = parse(reply);
+          const replyHtml = parse(reply)
+            .replaceAll("Sure!", "")
+            .replaceAll("Certainly!", "");
+          explanation.innerHTML = replyHtml;
 
           const footer = document.createElement("div");
           footer.className = "explain-text-footer";
