@@ -32,7 +32,10 @@ export interface PlacementStatus {
   fallback?: Fallback;
 }
 
-export type PlacementData = PlacementStatus | PlacementError;
+export interface PlacementData {
+  banner: PlacementStatus | PlacementError;
+  topBanner: PlacementStatus | PlacementError;
+}
 
 const PLACEMENT_PATH_RE = /\/[^/]+\/(docs\/|search$)/i;
 
@@ -66,7 +69,7 @@ export function PlacementProvider(props: { children: React.ReactNode }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ keywords: [] }),
+        body: JSON.stringify({ keywords: [], pongs: ["banner", "topBanner"] }),
       });
 
       gleanClick(`pong: pong->fetched ${response.status}`);
@@ -77,7 +80,7 @@ export function PlacementProvider(props: { children: React.ReactNode }) {
 
       try {
         const placementResponse: PlacementData = await response.json();
-        gleanClick(`pong: pong->status ${placementResponse.status}`);
+        gleanClick(`pong: pong->status ${placementResponse.banner.status}`);
         return placementResponse;
       } catch (e) {
         throw Error(response.statusText);

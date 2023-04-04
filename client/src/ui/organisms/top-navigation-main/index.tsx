@@ -14,6 +14,7 @@ import {
   TOP_NAV_ALREADY_SUBSCRIBER,
   TOP_NAV_GET_MDN_PLUS,
 } from "../../../telemetry/constants";
+import { OtherPlacement } from "../placement";
 
 export const TopNavigationMain = ({ isOpenOnMobile }) => {
   const userData = useUserData();
@@ -22,6 +23,8 @@ export const TopNavigationMain = ({ isOpenOnMobile }) => {
   return (
     <div className="top-navigation-main">
       <MainMenu isOpenOnMobile={isOpenOnMobile} />
+
+      <OtherPlacement />
 
       <Search id="top-nav-search" />
       <ThemeSwitcher />

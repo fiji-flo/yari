@@ -4,7 +4,12 @@ import { useUserData } from "../../../user-context";
 
 import "./index.scss";
 import { useGleanClick } from "../../../telemetry/glean-context";
-import { PlacementStatus, usePlacement } from "../../../placement-context";
+import {
+  PlacementData,
+  PlacementError,
+  PlacementStatus,
+  usePlacement,
+} from "../../../placement-context";
 
 interface Timer {
   timeout: number | null;
@@ -29,14 +34,35 @@ function viewed(
 export function Placement() {
   const placementData = usePlacement();
 
-  return !placementData ? (
+  return !placementData?.banner ? (
     <section className="place"></section>
   ) : (
-    <PlacementInner pong={placementData}></PlacementInner>
+    <PlacementInner
+      pong={placementData.banner as PlacementStatus}
+    ></PlacementInner>
   );
 }
 
-export function PlacementInner({ pong }) {
+export function OtherPlacement() {
+  const placementData = usePlacement();
+
+  return !placementData?.topBanner ? (
+    <section className="place other"></section>
+  ) : (
+    <PlacementInner
+      pong={placementData.topBanner as PlacementStatus}
+      extraClassNames={["other"]}
+    ></PlacementInner>
+  );
+}
+
+export function PlacementInner({
+  pong,
+  extraClassNames = [],
+}: {
+  pong: PlacementStatus;
+  extraClassNames?: string[];
+}) {
   const isServer = useIsServer();
   const user = useUserData();
   const isVisible = usePageVisibility();
@@ -115,7 +141,10 @@ export function PlacementInner({ pong }) {
     <>
       {!isServer && click && image && copy && (
         <>
-          <section ref={place} className="place">
+          <section
+            ref={place}
+            className={["place", ...extraClassNames].join(" ")}
+          >
             <p className="pong-box">
               <a
                 className="pong"
