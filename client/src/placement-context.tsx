@@ -37,10 +37,20 @@ export interface PlacementData {
   topBanner: PlacementStatus | PlacementError;
 }
 
-const PLACEMENT_PATH_RE = /\/[^/]+\/(docs\/|search$)/i;
+const BANNER_PLACEMENT_TUPLE: [string, RegExp] = [
+  "banner",
+  /\/[^/]+\/(docs\/|search$|_homepage)/i,
+];
+const TOP_BANNER_PLACEMENT_PATH_RE: [string, RegExp] = ["topBanner", /.*/i];
+const PLACEMENT_MAP: [string, RegExp][] = [
+  BANNER_PLACEMENT_TUPLE,
+  TOP_BANNER_PLACEMENT_PATH_RE,
+];
 
-function hasPlacement(pathname: string): boolean {
-  return PLACEMENT_PATH_RE.test(pathname);
+function placementTypes(pathname: string): string[] {
+  return PLACEMENT_MAP.map(([k, re]) => re.test(pathname) && k).filter(
+    Boolean
+  ) as string[];
 }
 
 export const PlacementContext = React.createContext<
@@ -60,7 +70,7 @@ export function PlacementProvider(props: { children: React.ReactNode }) {
   } = useSWR<PlacementData>(
     !PLACEMENT_ENABLED ||
       user?.settings?.noAds ||
-      !hasPlacement(location.pathname)
+      !placementTypes(location.pathname)
       ? null
       : "/pong/get",
     async (url) => {
@@ -69,7 +79,10 @@ export function PlacementProvider(props: { children: React.ReactNode }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ keywords: [], pongs: ["banner", "topBanner"] }),
+        body: JSON.stringify({
+          keywords: [],
+          pongs: placementTypes(location.pathname),
+        }),
       });
 
       gleanClick(`pong: pong->fetched ${response.status}`);

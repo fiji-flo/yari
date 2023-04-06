@@ -1,3 +1,5 @@
+@use "../../vars" as *;
+
 section.place {
   display: flex;
   margin: 1rem 0;
@@ -63,21 +65,32 @@ section.place {
 }
 
 section.place.other {
-  display: flex;
-  flex-direction: row;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-primary);
+  display: grid;
   font-size: 0.625rem;
+
+  grid-template-areas: "pong pong pong" "no space note";
   margin: 0 auto 0 0;
+  width: 100%;
+
+  @media screen and (min-width: $screen-md) {
+    grid-template-areas: "spacer pong no" "spacer pong note";
+    grid-template-columns: 8rem 1fr 8rem;
+  }
 
   .pong-box {
-    display: flex;
-    justify-content: space-between;
-    width: 25rem;
+    border: none;
+    display: contents;
+    width: 100%;
 
     .pong {
       color: var(--text-primary);
       flex-direction: row;
-      text-decoration: none;
+      grid-area: pong;
+      margin: 0 auto;
       padding: 0.125rem;
+      text-decoration: none;
 
       img {
         height: 3.125rem;
@@ -90,12 +103,19 @@ section.place.other {
     }
 
     .pong-note {
-      margin: auto 0.125rem 0;
+      grid-area: note;
+      margin: auto 0.5rem 0 auto;
       width: 4rem;
+      width: auto;
     }
   }
 
   .no-pong {
-    display: none;
+    grid-area: no;
+    margin: 0 auto 0 0.5rem;
+    width: auto;
+    @media screen and (min-width: $screen-md) {
+      margin: 0 0.5rem 0 auto;
+    }
   }
 }
