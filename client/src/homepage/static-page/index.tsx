@@ -72,9 +72,11 @@ function StaticPage({
       />
 
       <div className="main-wrapper">
-        <SidebarContainer doc={hyData}>
-          {sidebarHeader || null}
-        </SidebarContainer>
+        <div className="sidebar-container">
+          <SidebarContainer doc={hyData}>
+            {sidebarHeader || null}
+          </SidebarContainer>
+        </div>
         <aside className="toc">
           <nav>{toc || null}</nav>
         </aside>

@@ -29,8 +29,8 @@
       left: 0;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
-      position: fixed;
-      top: var(--top-navigation-height);
+      position: absolute;
+      top: 0;
       width: 100vw;
       z-index: var(--z-index-low);
 
@@ -79,10 +79,11 @@
     bottom: 0;
     display: flex;
     flex-direction: column;
+    height: fit-content;
     left: 0;
-    position: fixed;
+    position: absolute;
     right: 0;
-    top: var(--top-navigation-height);
+    top: 0;
     z-index: var(--z-index-mid);
   }
 
