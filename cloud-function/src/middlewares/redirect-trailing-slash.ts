@@ -11,19 +11,6 @@ const LOCALE_URI_WITHOUT_TRAILING_SLASH = new Set(
 const LOCALE_URI_WITH_TRAILING_SLASH = new Set(
   [...VALID_LOCALES.keys()].map((locale) => `/${locale}/`)
 );
-// TODO: The code that uses LEGACY_URI_NEEDING_TRAILING_SLASH should be
-//       temporary. For example, when we have moved to the Yari-built
-//       account settings page, we should add fundamental redirects
-//       for "/{locale}/account/?" and "/account/?" that redirect to
-//       "/{locale}/settings" and "/settings" respectively. The other
-//       cases can be either redirected or deleted eventually as well.
-//       The goal is to eventually remove the code that uses
-//       LEGACY_URI_NEEDING_TRAILING_SLASH.
-const LEGACY_URI_NEEDING_TRAILING_SLASH = new RegExp(
-  `^(?:${[...LOCALE_URI_WITHOUT_TRAILING_SLASH].join(
-    "|"
-  )})?/(?:account|contribute|maintenance-mode|payments)/?$`
-);
 
 export async function redirectTrailingSlash(
   req: Request,
@@ -55,15 +42,6 @@ export async function redirectTrailingSlash(
     // page, not "en-us/index.html", which is what S3 would look for if
     // we left the trailing slash.
     requestURI = requestURI.slice(0, -1);
-  } else if (
-    requestURI.endsWith("/") &&
-    !LEGACY_URI_NEEDING_TRAILING_SLASH.test(requestURILowerCase)
-  ) {
-    // All other requests with a trailing slash should redirect to the
-    // same URL without the trailing slash.
-    return redirect(res, requestURI.slice(0, -1) + qs, {
-      cacheControlSeconds: THIRTY_DAYS,
-    });
   }
 
   next();
