@@ -1659,10 +1659,10 @@
   dependencies:
     "@mdn/browser-compat-data" latest
 
-"@mdn/browser-compat-data@^5.2.35":
-  version "5.2.35"
-  resolved "https://registry.yarnpkg.com/@mdn/browser-compat-data/-/browser-compat-data-5.2.35.tgz#fff993a89e960e4237d2aada18e30336002974b3"
-  integrity sha512-WMGl70X/upKye9Ix0xQtaKzNsFJE6I4ZEexypk1gyiB5REQZv9BI3Stw8Tby25YSGJ7OuYG0+5oCnkv1A+3kRA==
+"@mdn/browser-compat-data@^5.2.51":
+  version "5.2.51"
+  resolved "https://registry.yarnpkg.com/@mdn/browser-compat-data/-/browser-compat-data-5.2.51.tgz#4b7a6fb5499abf758bd246e983e0a25ad0659c25"
+  integrity sha512-E72TUHMgX9+coOwyRf2C6OwAGlYgFS2UhpgokIYzzwrvnXDN8Qh7c+2L2KAnRcvf7RTZV52u8DhS4ajknyjlNw==
 
 "@mdn/browser-compat-data@latest":
   version "5.2.21"
