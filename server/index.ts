@@ -40,6 +40,7 @@ import { getRoot } from "../content/utils.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { renderHTML } from "../ssr/dist/main.js";
+import { buildPost, findPostBySlug } from "../build/blog.js";
 
 async function buildDocumentFromURL(url) {
   const document = Document.findByURL(url);
@@ -219,6 +220,17 @@ app.get("/*/contributors.txt", async (req, res) => {
   );
 });
 
+app.get(
+  "/:locale/blog/:slug([^/]+)(/index.json)?",
+  async (req, res, ...args) => {
+    const { slug } = req.params;
+    const doc = await findPostBySlug(slug);
+    if (doc) {
+      return res.json({ doc });
+    }
+    return res.status(404).send("Nothing here 🤷‍♂️");
+  }
+);
 app.get("/*", async (req, res, ...args) => {
   if (req.url.startsWith("/_")) {
     // URLs starting with _ is exclusively for the meta-work and if there

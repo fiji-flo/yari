@@ -1,4 +1,3 @@
-import got from "got";
 import { KumaThis } from "../environment.js";
 import * as util from "./util.js";
 
@@ -144,12 +143,10 @@ const mdn = {
   async fetchWebExtExamples() {
     if (!webExtExamples) {
       try {
-        webExtExamples = await got(
-          "https://raw.githubusercontent.com/mdn/webextensions-examples/master/examples.json",
-          {
-            timeout: { request: 1000 },
-            retry: { limit: 5 },
-          }
+        webExtExamples = await (
+          await fetch(
+            "https://raw.githubusercontent.com/mdn/webextensions-examples/master/examples.json"
+          )
         ).json();
       } catch (error) {
         webExtExamples = error;

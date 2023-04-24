@@ -26,6 +26,7 @@ import { Loading } from "./ui/atoms/loading";
 import { Advertising } from "./advertising";
 import { HydrationData } from "../../libs/types/hydration";
 import { TopPlacement } from "./ui/organisms/placement";
+import { Blog } from "./blog";
 
 const AllFlaws = React.lazy(() => import("./flaws"));
 const Translations = React.lazy(() => import("./translations"));
@@ -283,6 +284,16 @@ export function App(appProps: HydrationData) {
                 <StandardLayout>
                   <ContributorSpotlight {...appProps} />
                 </StandardLayout>
+              }
+            />
+            <Route
+              path="/blog/*"
+              element={
+                <PageOrPageNotFound pageNotFound={pageNotFound}>
+                  <DocumentLayout>
+                    <Blog {...appProps} />
+                  </DocumentLayout>
+                </PageOrPageNotFound>
               }
             />
             <Route

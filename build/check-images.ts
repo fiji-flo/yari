@@ -20,7 +20,7 @@ const { default: sizeOf } = imagesize;
 export function checkImageReferences(doc, $, options, { url, rawContent }) {
   const filePaths = new Set();
 
-  const checkImages = options.flawLevels.get("images") !== FLAW_LEVELS.IGNORE;
+  const checkImages = options?.flawLevels?.get("images") !== FLAW_LEVELS.IGNORE;
 
   const checked = new Map();
 
