@@ -16,7 +16,29 @@ export function useDocumentURL() {
   return url.endsWith("/") ? url.substring(0, url.length - 1) : url;
 }
 
-const HEADING_TAGS = ["h2", "h3", "h4", "h5", "h6"];
+const SECTION_RE = /h[1-6]/i;
+function partOfSection(heading: Element, element: Element) {
+  if (
+    SECTION_RE.test(element.tagName) &&
+    element.tagName.toLowerCase() <= heading.tagName.toLowerCase()
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function sectionForHeading(heading: Element | null): Element[] {
+  const nodes: Element[] = [];
+  if (heading === null) {
+    return [];
+  }
+  let next = heading.nextElementSibling;
+  while (next && partOfSection(heading, next)) {
+    nodes.push(next);
+    next = next.nextElementSibling;
+  }
+  return nodes;
+}
 
 export function useMakeInteractive(doc: Doc | undefined) {
   const isServer = useIsServer();
@@ -37,9 +59,12 @@ export function useMakeInteractive(doc: Doc | undefined) {
       }
       const iframeId = iframe.id;
       const id = iframeId.substring("frame_".length);
-      const section = document.querySelector(`#${id}`)?.parentElement;
+      const heading = document.getElementById(id);
+      const section = sectionForHeading(heading);
+      //const section = heading?.parentElement;
 
-      if (!section) {
+      console.log(heading, id);
+      if (!section.length) {
         return;
       }
       const code: EditorContent = {
@@ -51,11 +76,13 @@ export function useMakeInteractive(doc: Doc | undefined) {
 
       const nodes: Element[] = [];
       for (const part of LIVE_SAMPLE_PARTS) {
-        const src = [
-          ...section?.querySelectorAll(
-            `.${part}, pre[class*="brush:${part}"], pre[class*="${part};"]`
-          ),
-        ]
+        const src = section
+          .flatMap((e) => [
+            ...e?.querySelectorAll(
+              `.${part}, pre[class*="brush:${part}"], pre[class*="${part};"]`
+            ),
+          ])
+
           .map((e) => {
             nodes.push(e);
             return e.textContent;
@@ -63,34 +90,6 @@ export function useMakeInteractive(doc: Doc | undefined) {
           .join("\n");
         if (src) {
           code[part] += src;
-        }
-      }
-      if (Object.values(code).every((v) => v === "")) {
-        const h = section.firstElementChild?.tagName.toLowerCase() || "h6";
-        let next = section.nextElementSibling;
-        while (
-          next?.firstElementChild?.tagName &&
-          HEADING_TAGS.includes(
-            next?.firstElementChild?.tagName?.toLowerCase() || ""
-          ) &&
-          next?.firstElementChild?.tagName?.toLowerCase() > h
-        ) {
-          for (const part of LIVE_SAMPLE_PARTS) {
-            const src = [
-              ...next?.querySelectorAll(
-                `.${part}, pre[class*="brush:${part}"], pre[class*="${part};"]`
-              ),
-            ]
-              .map((e) => {
-                nodes.push(e);
-                return e.textContent;
-              })
-              .join("\n");
-            if (src) {
-              code[part] += src;
-            }
-          }
-          next = next.nextElementSibling;
         }
       }
       nodes.forEach((element) => {
