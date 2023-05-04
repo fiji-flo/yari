@@ -254,6 +254,7 @@ app.get("/:locale/blog/:slug/:asset", async (req, res) => {
   return res.status(404).send("Nothing here 🤷‍♂️");
 });
 app.get("/*", async (req, res, ...args) => {
+  const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
   if (req.url.startsWith("/_")) {
     // URLs starting with _ is exclusively for the meta-work and if there
     // isn't already a handler, it's something wrong.
@@ -272,6 +273,9 @@ app.get("/*", async (req, res, ...args) => {
     return contentProxy(req, res, ...args);
   }
 
+  if (parsedUrl.pathname.endsWith("/runner.html")) {
+    return res.status(200).sendFile(path.join(STATIC_ROOT, "runner.html"));
+  }
   if (req.url.includes("/_sample_.")) {
     try {
       return res.send(await buildLiveSamplePageFromURL(req.path));

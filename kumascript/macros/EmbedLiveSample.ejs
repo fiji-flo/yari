@@ -69,6 +69,7 @@ if (sampleSlug) {
     }
 }
 var url = await template('LiveSampleURL', [sampleIdOrOffset, sampleUrl]);
+const newUrl = `http://localhost:5042${env.url}/runner.html`;
 
 if (hasScreenshot) {
 %><table class="sample-code-table"><%
@@ -89,7 +90,7 @@ if (hasScreenshot) {
 %> title="<%= title %> sample" id="frame_<%= web.slugify(web.safeDecodeURIComponent(sampleIdOrOffset)) %>"<%
 if (width) { %> width="<%= width %>"<% }
 if (height) { %> height="<%= height %>"<% }
-%> src="<%- url %>"<%
+%> src="<%- newUrl %>"<%
 if (allowedFeatures) { %> allow="<%= allowedFeatures %>"<% }
 if ($token) { %> data-token="<%= JSON.stringify($token) %>"<% }
 %>></iframe><%

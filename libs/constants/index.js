@@ -62,6 +62,7 @@ export const ACTIVE_LOCALES = new Set([
 export const CSP_SCRIPT_SRC_VALUES = [
   "'report-sample'",
   "'self'",
+  "'unsafe-eval'",
 
   "www.google-analytics.com/analytics.js",
 
@@ -82,6 +83,8 @@ export const CSP_SCRIPT_SRC_VALUES = [
   "'sha256-GA8+DpFnqAM/vwERTpb5zyLUaN5KnOhctfTsqWfhaUA='",
   // - Current hash:
   "'sha256-uogddBLIKmJa413dyT0iPejBg3VFcO+4x6B+vw3jng0='",
+  // - runner.html:
+  "'sha256-XcS1jGwMzbJYqzSW6jpY3nkT3OS75U/eiieCqkU+SBY='",
 ];
 export const CSP_DIRECTIVES = {
   "default-src": ["'self'"],

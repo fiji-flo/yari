@@ -26,6 +26,7 @@ import { Loading } from "./ui/atoms/loading";
 import { Advertising } from "./advertising";
 import { HydrationData } from "../../libs/types/hydration";
 import { TopPlacement } from "./ui/organisms/placement";
+import { Playground } from "./playground";
 import { Blog } from "./blog";
 
 const AllFlaws = React.lazy(() => import("./flaws"));
@@ -157,6 +158,14 @@ export function App(appProps: HydrationData) {
         time it hits any React code.
        */}
       <Route path="/" element={homePage} />
+      <Route
+        path="/play"
+        element={
+          <StandardLayout>
+            <Playground />
+          </StandardLayout>
+        }
+      />
       <Route
         path="/en-US/blog/*"
         element={
