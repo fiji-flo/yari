@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
+import prettier from "prettier";
+import parserBabel from "prettier/esm/parser-babel.mjs";
+import parserCSS from "prettier/esm/parser-postcss.mjs";
+import parserHTML from "prettier/esm/parser-html.mjs";
+
 import { Button } from "../ui/atoms/button";
 import { EditorHandle } from "./editor";
 
@@ -84,6 +89,7 @@ async function save(editorContent: EditorContent) {
 
 export function Playground() {
   let [searchParams, setSearchParams] = useSearchParams();
+  let [shared, setShared] = useState(false);
   let [url, setUrl] = useState<string | null>(null);
   let [vConsole, setVConsole] = useState<{ prop: string; message: string }[]>(
     []
@@ -93,7 +99,7 @@ export function Playground() {
   let gistId = searchParams.get("gist");
   let localKey = searchParams.get("local");
   let { data: code } = useSWR<EditorContent>(
-    gistId ? `/api/v1/play/${gistId}` : null,
+    !shared && gistId ? `/api/v1/play/${gistId}` : null,
     async (url) => {
       const response = await fetch(url);
 
@@ -179,29 +185,56 @@ export function Playground() {
       js: jsRef.current?.getContent() || JS_DEFAULT,
     };
   };
+
   const updateWithEditorContent = () => {
     setVersion((v) => v + 1);
     versionRef.current += 1;
   };
+
+  const format = () => {
+    const { html, css, js } = getEditorContent();
+
+    try {
+      const formatted = {
+        html: prettier.format(html, { parser: "html", plugins: [parserHTML] }),
+        css: prettier.format(css, { parser: "css", plugins: [parserCSS] }),
+        js: prettier.format(js, { parser: "babel", plugins: [parserBabel] }),
+      };
+      htmlRef.current?.setContent(formatted.html);
+      cssRef.current?.setContent(formatted.css);
+      jsRef.current?.setContent(formatted.js);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <>
       <main className="play container">
         <dialog id="playDialog" ref={diaRef}>
-          {url && <a href={url}>{url}</a>}
+          <div>
+            <span>Share your code via this Permalink:</span>
+            {url && <a href={url}>{url}</a>}
+          </div>
         </dialog>
         <section className="editors">
           <aside>
+            <Button onClickHandler={format}>format</Button>
             <Button onClickHandler={updateWithEditorContent}>run</Button>
             <Button
               onClickHandler={async () => {
                 const url = await save(getEditorContent());
                 setUrl(url.toString());
+                setSearchParams(url.searchParams);
+                setShared(true);
                 diaRef.current?.showModal();
               }}
             >
               share
             </Button>
-            <Button onClickHandler={resetConfirm}>reset</Button>
+            <Button extraClasses="red" onClickHandler={resetConfirm}>
+              reset
+            </Button>
           </aside>
           <Editor
             ref={htmlRef}
@@ -220,6 +253,11 @@ export function Playground() {
           ></Editor>
         </section>
         <section className="preview">
+          {gistId && (
+            <a className="flag-example" href="/">
+              Seeing something inappropriate?
+            </a>
+          )}
           <iframe
             title="runner"
             ref={iframeRef}

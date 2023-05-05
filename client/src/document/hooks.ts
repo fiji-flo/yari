@@ -35,7 +35,11 @@ function sectionForHeading(heading: Element | null): Element[] {
   let next = heading.nextElementSibling;
   while (next && partOfSection(heading, next)) {
     nodes.push(next);
-    next = next.nextElementSibling;
+    if (next.nextElementSibling === null) {
+      next = next.parentElement?.nextElementSibling?.firstElementChild || null;
+    } else {
+      next = next.nextElementSibling;
+    }
   }
   return nodes;
 }
@@ -52,7 +56,6 @@ export function useMakeInteractive(doc: Doc | undefined) {
       return;
     }
     [...document.querySelectorAll("iframe")].forEach((iframe) => {
-      console.log(iframe.src);
       const src = iframe.src;
       if (!(src && src.toLowerCase().includes(`/runner.html`))) {
         return;
@@ -61,9 +64,7 @@ export function useMakeInteractive(doc: Doc | undefined) {
       const id = iframeId.substring("frame_".length);
       const heading = document.getElementById(id);
       const section = sectionForHeading(heading);
-      //const section = heading?.parentElement;
 
-      console.log(heading, id);
       if (!section.length) {
         return;
       }

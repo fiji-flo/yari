@@ -16,12 +16,19 @@
 main.play {
   background-color: var(--background-primary);
   display: grid;
+  gap: 1rem;
   grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - var(--main-document-header-height));
   padding: 1rem;
 
   dialog {
     z-index: 1;
+
+    &#playDialog > div {
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+    }
 
     &#refineDialog > div,
     &#askDialog > div {
@@ -47,6 +54,11 @@ main.play {
 
         button {
           min-width: 6rem;
+
+          &.red {
+            --button-bg: var(--icon-critical);
+            --button-bg-hover: var(--icon-warning);
+          }
         }
       }
 
@@ -66,8 +78,8 @@ main.play {
           max-height: 25vh;
           overflow: scroll;
 
-          .monaco-editor {
-            min-height: 10rem;
+          .cm-editor {
+            height: 100%;
             width: 100%;
           }
         }
@@ -92,9 +104,20 @@ main.play {
         }
       }
 
+      a.flag-example {
+        font-size: smaller;
+        margin: 0 auto;
+        margin-top: 1.5rem;
+        text-decoration: underline;
+
+        &:hover {
+          text-decoration: none;
+        }
+      }
+
       iframe {
-        height: calc(100% - 18rem);
-        width: 95%;
+        height: calc(100% - 20rem);
+        width: 100%;
       }
 
       ul {
@@ -103,7 +126,7 @@ main.play {
         margin: 0.25rem;
         max-height: 6rem;
         overflow: scroll;
-        width: 95%;
+        width: 100%;
 
         li {
           padding: 0 1rem;
