@@ -18,7 +18,7 @@ main.play {
   display: grid;
   gap: 1rem;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - var(--main-document-header-height));
+  min-height: calc(100vh - var(--sticky-header-height));
   padding: 1rem;
 
   dialog {
