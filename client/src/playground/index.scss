@@ -54,6 +54,7 @@ main.play {
 
         button {
           min-width: 6rem;
+          text-transform: uppercase;
 
           &.red {
             --button-bg: var(--icon-critical);
