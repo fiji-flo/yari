@@ -1,9 +1,11 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { EditorView, basicSetup } from "codemirror";
-import { EditorState } from "@codemirror/state";
+import { EditorState, StateEffect } from "@codemirror/state";
 import { javascript } from "@codemirror/lang-javascript";
 import { css } from "@codemirror/lang-css";
 import { html } from "@codemirror/lang-html";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { useUIStatus } from "../ui-context";
 
 // @ts-ignore
 // eslint-disable-next-line no-restricted-globals
@@ -53,6 +55,7 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
   },
   ref
 ) {
+  const { colorScheme } = useUIStatus();
   const timer = useRef<number | null>(null);
   const divEl = useRef<HTMLDivElement>(null);
   let editor = useRef<EditorView | null>(null);
@@ -70,22 +73,28 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
     })
   );
   useEffect(() => {
+    const extensions = [
+      basicSetup,
+      updateListenerExtension.current,
+      EditorView.lineWrapping,
+      ...(colorScheme === "dark" ? [oneDark] : []),
+      ...lang(language),
+    ];
     if (divEl.current && editor.current === null) {
       let startState = EditorState.create({
-        extensions: [
-          basicSetup,
-          updateListenerExtension.current,
-          EditorView.lineWrapping,
-          ...lang(language),
-        ],
+        extensions,
       });
       editor.current = new EditorView({
         state: startState,
         parent: divEl.current,
       });
+    } else {
+      editor.current?.dispatch({
+        effects: StateEffect.reconfigure.of(extensions),
+      });
     }
     return () => {};
-  }, [language]);
+  }, [language, colorScheme]);
 
   useImperativeHandle(
     ref,
@@ -101,6 +110,7 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
               basicSetup,
               updateListenerExtension.current,
               EditorView.lineWrapping,
+              ...(colorScheme === "dark" ? [oneDark] : []),
               ...lang(language),
             ],
           });
@@ -108,7 +118,7 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
         },
       };
     },
-    [language]
+    [language, colorScheme]
   );
   return (
     <div className="editor-container">
