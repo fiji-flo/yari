@@ -121,10 +121,10 @@ const Editor = forwardRef<EditorHandle, any>(function EditorInner(
     [language, colorScheme]
   );
   return (
-    <div className="editor-container">
-      <label>{language.toUpperCase()}</label>
+    <details className="editor-container" open={true}>
+      <summary>{language.toUpperCase()}</summary>
       <div className="editor" ref={divEl}></div>
-    </div>
+    </details>
   );
 });
 

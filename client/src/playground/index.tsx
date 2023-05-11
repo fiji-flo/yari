@@ -99,7 +99,7 @@ export function Playground() {
   let gistId = searchParams.get("gist");
   let localKey = searchParams.get("local");
   let { data: code } = useSWR<EditorContent>(
-    !shared && gistId ? `/api/v1/play/${gistId}` : null,
+    !shared && gistId ? `/api/v1/play/${encodeURIComponent(gistId)}` : null,
     async (url) => {
       const response = await fetch(url);
 
@@ -219,9 +219,15 @@ export function Playground() {
         </dialog>
         <section className="editors">
           <aside>
-            <Button onClickHandler={format}>format</Button>
-            <Button onClickHandler={updateWithEditorContent}>run</Button>
+            <Button id="format" icon="quote" onClickHandler={format}></Button>
             <Button
+              id="run"
+              icon="next"
+              onClickHandler={updateWithEditorContent}
+            ></Button>
+            <Button
+              id="share"
+              icon="external"
               onClickHandler={async () => {
                 const url = await save(getEditorContent());
                 setUrl(url.toString());
@@ -229,12 +235,13 @@ export function Playground() {
                 setShared(true);
                 diaRef.current?.showModal();
               }}
-            >
-              share
-            </Button>
-            <Button extraClasses="red" onClickHandler={resetConfirm}>
-              reset
-            </Button>
+            ></Button>
+            <Button
+              id="reset"
+              icon="cancel"
+              extraClasses="red"
+              onClickHandler={resetConfirm}
+            ></Button>
           </aside>
           <Editor
             ref={htmlRef}
