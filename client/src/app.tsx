@@ -26,13 +26,13 @@ import { Loading } from "./ui/atoms/loading";
 import { Advertising } from "./advertising";
 import { HydrationData } from "../../libs/types/hydration";
 import { TopPlacement } from "./ui/organisms/placement";
-import { Playground } from "./playground";
 import { Blog } from "./blog";
 
 const AllFlaws = React.lazy(() => import("./flaws"));
 const Translations = React.lazy(() => import("./translations"));
 const WritersHomepage = React.lazy(() => import("./writers-homepage"));
 const Sitemap = React.lazy(() => import("./sitemap"));
+const Playground = React.lazy(() => import("./playground"));
 
 function Layout({ pageType, children }) {
   const { pathname } = useLocation();
@@ -161,9 +161,9 @@ export function App(appProps: HydrationData) {
       <Route
         path="/play"
         element={
-          <StandardLayout>
+          <LazyStandardLayout>
             <Playground />
-          </StandardLayout>
+          </LazyStandardLayout>
         }
       />
       <Route

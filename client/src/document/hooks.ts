@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useIsServer, useLocale } from "../hooks";
 import { Doc } from "../../../libs/types/document";
-import { EditorContent, update } from "../playground";
+import { EditorContent, update } from "../playground/utils";
 
 const LIVE_SAMPLE_PARTS = ["html", "css", "js"];
 

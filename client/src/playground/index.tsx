@@ -1,18 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
-import prettier from "prettier";
+import prettier from "prettier/esm/standalone.mjs";
 import parserBabel from "prettier/esm/parser-babel.mjs";
 import parserCSS from "prettier/esm/parser-postcss.mjs";
 import parserHTML from "prettier/esm/parser-html.mjs";
 
 import { Button } from "../ui/atoms/button";
-import { EditorHandle } from "./editor";
+import Editor, { EditorHandle } from "./editor";
+import { SidePlacement } from "../ui/organisms/placement";
+import { EditorContent, update } from "./utils";
 
 import "./index.scss";
-import { SidePlacement } from "../ui/organisms/placement";
-
-const Editor = React.lazy(() => import("./editor"));
 
 const HTML_DEFAULT = "<!-- HTML goes here -->";
 const CSS_DEFAULT = "/* CSS goes here */";
@@ -24,18 +23,6 @@ enum State {
   modified,
 }
 
-export interface EditorContent {
-  css: string;
-  html: string;
-  js: string;
-  src?: string;
-}
-
-export interface Message {
-  typ: string;
-  state: EditorContent;
-}
-
 export function resetIframe(iframe: HTMLIFrameElement | null) {
   iframe?.contentWindow?.postMessage(
     { typ: "reset" },
@@ -43,34 +30,6 @@ export function resetIframe(iframe: HTMLIFrameElement | null) {
       targetOrigin: "*",
     }
   );
-}
-
-export function update(
-  iframe: HTMLIFrameElement | null,
-  editorContent: EditorContent | null
-) {
-  console.log(iframe?.contentDocument?.readyState, editorContent);
-  if (!iframe || !editorContent) {
-    return;
-  }
-
-  const message: Message = {
-    typ: "init",
-    state: editorContent,
-  };
-  if (iframe.contentDocument?.readyState === "loading") {
-    iframe.contentDocument?.addEventListener("DOMContentLoaded", () => {
-      console.log("in the ****");
-      iframe.contentWindow!.postMessage(message, {
-        targetOrigin: "*",
-      });
-    });
-  } else {
-    console.log("wait what");
-    iframe.contentWindow!.postMessage(message, {
-      targetOrigin: "*",
-    });
-  }
 }
 
 async function save(editorContent: EditorContent) {
@@ -87,7 +46,7 @@ async function save(editorContent: EditorContent) {
   return url;
 }
 
-export function Playground() {
+export default function Playground() {
   let [searchParams, setSearchParams] = useSearchParams();
   let [shared, setShared] = useState(false);
   let [url, setUrl] = useState<string | null>(null);
