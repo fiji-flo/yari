@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import prettier from "prettier/esm/standalone.mjs";
@@ -10,9 +10,9 @@ import { Button } from "../ui/atoms/button";
 import Editor, { EditorHandle } from "./editor";
 import { SidePlacement } from "../ui/organisms/placement";
 import { EditorContent, update } from "./utils";
+import { PLAYGROUND_BASE_URL } from "../../../libs/env";
 
 import "./index.scss";
-import { Checkbox } from "../ui/atoms/checkbox";
 import { Switch } from "../ui/atoms/switch";
 
 const HTML_DEFAULT = "<!-- HTML goes here -->";
@@ -25,14 +25,7 @@ enum State {
   modified,
 }
 
-export function resetIframe(iframe: HTMLIFrameElement | null) {
-  iframe?.contentWindow?.postMessage(
-    { typ: "reset" },
-    {
-      targetOrigin: "*",
-    }
-  );
-}
+export function resetIframe(iframe: HTMLIFrameElement | null) {}
 
 async function save(editorContent: EditorContent) {
   const res = await fetch("/api/v1/play/", {
@@ -129,7 +122,12 @@ export default function Playground() {
     htmlRef.current?.setContent(HTML_DEFAULT);
     cssRef.current?.setContent(CSS_DEFAULT);
     jsRef.current?.setContent(JS_DEFAULT);
-    resetIframe(iframe.current);
+
+    if (iframe.current?.contentWindow?.location?.href) {
+      iframe.current.contentWindow.location.href = `https://${PLAYGROUND_BASE_URL}/${
+        unsafe ? "unsafe-runner.html" : "runner.html"
+      }`;
+    }
   };
   const resetConfirm = async () => {
     if (window.confirm("Do you really want to reset everything?")) {
@@ -240,7 +238,7 @@ export default function Playground() {
             ref={iframeRef}
             src={`${
               code?.src ||
-              `http://localhost:5042/${
+              `https://${PLAYGROUND_BASE_URL}/${
                 unsafe ? "unsafe-runner.html" : "runner.html"
               }`
             }?v=${version}`}

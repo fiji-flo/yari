@@ -38,9 +38,6 @@
         if (e.typ === "init") {
           init(e.state);
         }
-        if (e.typ === "reset") {
-          document.location.reload();
-        }
       });
       window.parent.postMessage(
         {

@@ -18,6 +18,7 @@ import { redirectTrailingSlash } from "./middlewares/redirect-trailing-slash.js"
 import { requireOrigin } from "./middlewares/require-origin.js";
 import { notFound } from "./middlewares/not-found.js";
 import { resolveRunnerHtml } from "./middlewares/resolve-runner-html.js";
+import { proxyRunner } from "./handlers/proxy-runner.js";
 
 const router = Router();
 router.use(redirectLeadingSlash);
@@ -41,10 +42,17 @@ router.get(
 );
 router.get("/", requireOrigin(Origin.main), redirectLocale);
 router.get(
-  ["/[^/]+/docs/*/runner.html", "/[^/]+/blog/*/runner.html", "^/runner.html"],
+  [
+    "/[^/]+/docs/*/runner.html",
+    "/[^/]+/blog/*/runner.html",
+    "^/runner.html",
+    "/[^/]+/docs/*/unsafe-runner.html",
+    "/[^/]+/blog/*/unsafe-runner.html",
+    "^/unsafe-runner.html",
+  ],
   requireOrigin(Origin.play),
   resolveRunnerHtml,
-  proxyContent
+  proxyRunner
 );
 router.get(
   ["/[^/]+/docs/*/_sample_.*.html", "/[^/]+/blog/*/_sample_.*.html"],
