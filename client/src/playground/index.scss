@@ -59,12 +59,24 @@ main.play {
         justify-content: end;
         flex-wrap: wrap;
 
-        button {
-          text-transform: uppercase;
+        .switch {
+          margin-right: auto;
+        }
 
-          &.red {
-            --button-bg: var(--icon-critical);
-            --button-bg-hover: var(--icon-warning);
+        menu {
+          display: flex;
+          gap: 0.5rem;
+          justify-content: end;
+          flex-wrap: wrap;
+          margin: 0;
+
+          button {
+            text-transform: uppercase;
+
+            &.red {
+              --button-bg: var(--icon-critical);
+              --button-bg-hover: var(--icon-warning);
+            }
           }
         }
       }

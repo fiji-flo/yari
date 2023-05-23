@@ -82,13 +82,9 @@ export const CSP_SCRIPT_SRC_VALUES = [
   "'sha256-GA8+DpFnqAM/vwERTpb5zyLUaN5KnOhctfTsqWfhaUA='",
   // - Current hash:
   "'sha256-uogddBLIKmJa413dyT0iPejBg3VFcO+4x6B+vw3jng0='",
-  // - runner.html:
-  "'sha256-/UqUh+Mgz3N9vnlxczzK0wWb8lNzPDSCfyvXsUoZzqU='",
 ];
 export const CSP_DIRECTIVES = {
   "default-src": ["'self'"],
-  "script-src": CSP_SCRIPT_SRC_VALUES,
-  "script-src-elem": CSP_SCRIPT_SRC_VALUES,
   "style-src": ["'report-sample'", "'self'", "'unsafe-inline'"],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],
@@ -154,7 +150,35 @@ export const cspToString = (csp) =>
     .map(([directive, values]) => `${directive} ${values.join(" ")};`)
     .join(" ");
 
-export const CSP_VALUE = cspToString(CSP_DIRECTIVES);
+export const CSP_VALUE = cspToString({
+  ...CSP_DIRECTIVES,
+  "script-src": CSP_SCRIPT_SRC_VALUES,
+  "script-src-elem": CSP_SCRIPT_SRC_VALUES,
+});
+
+export const PLAYGROUND_UNSAFE_CSP_SCRIPT_SRC_VALUES = [
+  "'unsafe-eval'",
+  "'unsafe-inline'",
+  "'wasm-unsafe-eval'",
+];
+
+export const PLAYGROUND_UNSAFE_CSP_DIRECTIVES = {
+  "default-src": ["*"],
+  "script-src": PLAYGROUND_UNSAFE_CSP_SCRIPT_SRC_VALUES,
+  "script-src-elem": PLAYGROUND_UNSAFE_CSP_SCRIPT_SRC_VALUES,
+  "style-src": ["'report-sample'", "*", "'unsafe-inline'", "'unsafe-eval'"],
+  "base-uri": ["'self'"],
+};
+
+export const PLAYGROUND_CSP_VALUE = cspToString({
+  ...CSP_DIRECTIVES,
+  "script-src": [...CSP_SCRIPT_SRC_VALUES, "'nonce-deadbeef'"],
+  "script-src-elem": [...CSP_SCRIPT_SRC_VALUES, "'nonce-deadbeef'"],
+});
+
+export const PLAYGROUND_UNSAFE_CSP_VALUE = cspToString(
+  PLAYGROUND_UNSAFE_CSP_DIRECTIVES
+);
 
 // -----
 // build

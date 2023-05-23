@@ -12,6 +12,8 @@ import { SidePlacement } from "../ui/organisms/placement";
 import { EditorContent, update } from "./utils";
 
 import "./index.scss";
+import { Checkbox } from "../ui/atoms/checkbox";
+import { Switch } from "../ui/atoms/switch";
 
 const HTML_DEFAULT = "<!-- HTML goes here -->";
 const CSS_DEFAULT = "/* CSS goes here */";
@@ -55,6 +57,7 @@ export default function Playground() {
   );
   let [state, setState] = useState(State.initial);
   let [version, setVersion] = useState<number>(0);
+  let [unsafe, setUnsafe] = useState(false);
   let gistId = searchParams.get("gist");
   let localKey = searchParams.get("local");
   let { data: code } = useSWR<EditorContent>(
@@ -86,7 +89,6 @@ export default function Playground() {
   const iframe = useRef<HTMLIFrameElement | null>(null);
   const diaRef = useRef<HTMLDialogElement | null>(null);
   let messageListener = useCallback(({ data: { typ, prop, message } }) => {
-    console.log(typ, prop, message);
     if (typ === "console") {
       if (prop === "clear") {
         setVConsole([]);
@@ -94,9 +96,7 @@ export default function Playground() {
         setVConsole((vConsole) => [...vConsole, { prop, message }]);
       }
     } else if (typ === "ready") {
-      console.log(prop, versionRef.current);
       if (prop === versionRef.current) {
-        console.log("updating");
         update(iframe.current, getEditorContent());
       }
     }
@@ -178,29 +178,40 @@ export default function Playground() {
         </dialog>
         <section className="editors">
           <aside>
-            <Button id="format" icon="quote" onClickHandler={format}></Button>
-            <Button
-              id="run"
-              icon="next"
-              onClickHandler={updateWithEditorContent}
-            ></Button>
-            <Button
-              id="share"
-              icon="external"
-              onClickHandler={async () => {
-                const url = await save(getEditorContent());
-                setUrl(url.toString());
-                setSearchParams(url.searchParams);
-                setShared(true);
-                diaRef.current?.showModal();
-              }}
-            ></Button>
-            <Button
-              id="reset"
-              icon="cancel"
-              extraClasses="red"
-              onClickHandler={resetConfirm}
-            ></Button>
+            <Switch
+              name="toggle-unsafe"
+              checked={unsafe}
+              toggle={(e) => setUnsafe(e.target.checked)}
+            >
+              Enable unsafe content
+            </Switch>
+            <menu>
+              <Button id="format" onClickHandler={format}>
+                format
+              </Button>
+              <Button id="run" onClickHandler={updateWithEditorContent}>
+                run
+              </Button>
+              <Button
+                id="share"
+                onClickHandler={async () => {
+                  const url = await save(getEditorContent());
+                  setUrl(url.toString());
+                  setSearchParams(url.searchParams);
+                  setShared(true);
+                  diaRef.current?.showModal();
+                }}
+              >
+                share
+              </Button>
+              <Button
+                id="reset"
+                extraClasses="red"
+                onClickHandler={resetConfirm}
+              >
+                reset
+              </Button>
+            </menu>
           </aside>
           <Editor
             ref={htmlRef}
@@ -228,14 +239,17 @@ export default function Playground() {
             title="runner"
             ref={iframeRef}
             src={`${
-              code?.src || "http://localhost:5042/runner.html"
+              code?.src ||
+              `http://localhost:5042/${
+                unsafe ? "unsafe-runner.html" : "runner.html"
+              }`
             }?v=${version}`}
             sandbox="allow-scripts"
           ></iframe>
           <ul>
-            {vConsole.map(({ prop, message }) => {
+            {vConsole.map(({ prop, message }, i) => {
               return (
-                <li>
+                <li key="i">
                   <code>{message}</code>
                 </li>
               );

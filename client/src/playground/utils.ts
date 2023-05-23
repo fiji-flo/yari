@@ -14,7 +14,6 @@ export function update(
   iframe: HTMLIFrameElement | null,
   editorContent: EditorContent | null
 ) {
-  console.log(iframe?.contentDocument?.readyState, editorContent);
   if (!iframe || !editorContent) {
     return;
   }
@@ -34,7 +33,6 @@ export function update(
       });
     });
   } else {
-    console.log("wait what");
     iframe.contentWindow!.postMessage(message, {
       targetOrigin: "*",
     });

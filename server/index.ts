@@ -18,7 +18,12 @@ import {
 } from "../build/index.js";
 import { findDocumentTranslations } from "../content/translations.js";
 import { Document, Redirect, Image } from "../content/index.js";
-import { CSP_VALUE, DEFAULT_LOCALE } from "../libs/constants/index.js";
+import {
+  CSP_VALUE,
+  DEFAULT_LOCALE,
+  PLAYGROUND_CSP_VALUE,
+  PLAYGROUND_UNSAFE_CSP_VALUE,
+} from "../libs/constants/index.js";
 import {
   STATIC_ROOT,
   PROXY_HOSTNAME,
@@ -274,7 +279,16 @@ app.get("/*", async (req, res, ...args) => {
   }
 
   if (parsedUrl.pathname.endsWith("/runner.html")) {
-    return res.status(200).sendFile(path.join(STATIC_ROOT, "runner.html"));
+    return res
+      .setHeader("Content-Security-Policy", PLAYGROUND_CSP_VALUE)
+      .status(200)
+      .sendFile(path.join(STATIC_ROOT, "runner.html"));
+  }
+  if (parsedUrl.pathname.endsWith("/unsafe-runner.html")) {
+    return res
+      .setHeader("Content-Security-Policy", PLAYGROUND_UNSAFE_CSP_VALUE)
+      .status(200)
+      .sendFile(path.join(STATIC_ROOT, "runner.html"));
   }
   if (req.url.includes("/_sample_.")) {
     try {
