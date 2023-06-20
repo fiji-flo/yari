@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import * as marked from "marked";
 import { useIsServer, useLocale } from "../hooks";
 import { Doc } from "../../../libs/types/document";
 import {
@@ -7,6 +8,7 @@ import {
   initPlayIframe,
   SESSION_KEY,
 } from "../playground/utils";
+import { explain } from "./ai-explain";
 
 const LIVE_SAMPLE_PARTS = ["html", "css", "js"];
 
@@ -74,6 +76,38 @@ function prevHeading(heading: Element) {
     }
   }
   return null;
+}
+
+function addExplainButton(element: Element | null, pre: Element, id: string) {
+  if (!element || element.querySelector(".ai-explain-button")) return;
+
+  const button = document.createElement("button");
+
+  button.textContent = "AI Explain";
+
+  button.setAttribute("class", "ai-explain-button");
+  button.type = "button";
+  button.setAttribute("data-ai-explain", id);
+  button.title = "Open in Playground";
+  element.appendChild(button);
+
+  button.addEventListener("click", (e) => {
+    let div = document.createElement("div");
+    div.classList.add("ai-explain-answer");
+    pre.insertAdjacentElement("afterend", div);
+    let all = "";
+    explain(
+      { sample: pre.textContent, signature: "", language: "html" },
+      (data, err) => {
+        if (data !== null) {
+          const { choices: [{ delta: { content = "" } = {} } = {}] = [] } =
+            data;
+          all += content || "";
+          div.innerHTML = marked.parse(all);
+        }
+      }
+    );
+  });
 }
 
 function addBreakoutButton(
@@ -262,6 +296,7 @@ export function useCopyExamplesToClipboard(doc: Doc | undefined) {
         // early if we have to.
         if (!header || header.querySelector(".copy-icon")) return;
 
+        addExplainButton(header, element, "");
         const button = document.createElement("button");
         const span = document.createElement("span");
         const liveregion = document.createElement("span");

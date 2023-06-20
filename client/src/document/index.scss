@@ -568,28 +568,34 @@ pre {
     }
   }
 
-  .play-button {
+  .ai-explain-answer {
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border-primary);
+    padding: 1rem;
+  }
+
+  .play-button,
+  .ai-explain-button {
     cursor: pointer;
     font-size: smaller;
     margin: 0;
-    margin-left: auto;
     opacity: 0.4;
 
     &:hover,
     &:focus {
       opacity: 1;
     }
+  }
 
-    &::after {
-      background-color: var(--icon-primary);
-      content: "";
-      display: inline-flex;
-      height: 10px;
-      margin-left: 4px;
-      mask-image: url("../assets/icons/external.svg");
-      mask-size: cover;
-      width: 10px;
-    }
+  .play-button::after {
+    background-color: var(--icon-primary);
+    content: "";
+    display: inline-flex;
+    height: 10px;
+    margin-left: 4px;
+    mask-image: url("../assets/icons/external.svg");
+    mask-size: cover;
+    width: 10px;
   }
 
   .copy-icon {
