@@ -92,12 +92,22 @@ function addExplainButton(element: Element | null, pre: Element, id: string) {
   element.appendChild(button);
 
   button.addEventListener("click", (e) => {
+    const language = element.querySelector(".language-name")?.textContent;
     let div = document.createElement("div");
     div.classList.add("ai-explain-answer");
     pre.insertAdjacentElement("afterend", div);
+    const sample = pre.textContent;
+    const selected = window.getSelection()?.toString();
+    const highlighted =
+      selected && sample?.includes(selected) ? selected : null;
     let all = "";
     explain(
-      { sample: pre.textContent, signature: "", language: "html" },
+      {
+        language,
+        highlighted,
+        sample,
+        signature: pre.getAttribute("data-signature"),
+      },
       (data, err) => {
         if (data !== null) {
           const { choices: [{ delta: { content = "" } = {} } = {}] = [] } =
