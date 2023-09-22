@@ -15,11 +15,13 @@ import {
   AuthorMetadata,
 } from "../../../libs/types/blog";
 import {
+  useCollectSample,
   useCopyExamplesToClipboardAndAIExplain,
   useRunSample,
 } from "../document/hooks";
 import { DEFAULT_LOCALE } from "../../../libs/constants";
 import { SignUpSection as NewsletterSignUp } from "../newsletter";
+import { PlayQueue } from "../playground/queue";
 
 function MaybeLink({ className = "", link, children }) {
   return link ? (
@@ -187,6 +189,7 @@ export function BlogPost(props: HydrationData) {
   );
   const { doc, blogMeta } = data || props || {};
   useRunSample(doc);
+  useCollectSample(doc);
   useCopyExamplesToClipboardAndAIExplain(doc);
   return (
     <>
@@ -206,6 +209,7 @@ export function BlogPost(props: HydrationData) {
             {blogMeta.links && <PreviousNext links={blogMeta.links} />}
           </article>
           <NewsletterSignUp />
+          <PlayQueue standalone={true} />
         </>
       )}
     </>
