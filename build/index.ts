@@ -171,6 +171,7 @@ interface DocumentOptions {
   fixFlawsDryRun?: boolean;
   fixFlawsTypes?: Iterable<string>;
   fixFlawsVerbose?: boolean;
+  md?: boolean;
 }
 
 export async function buildDocument(
@@ -216,13 +217,19 @@ export async function buildDocument(
 
   let flaws: any[] = [];
   let $: cheerio.CheerioAPI = null;
+  let $1: string | cheerio.CheerioAPI = "";
   const liveSamples: LiveSample[] = [];
   // this will get populated with the parent's frontmatter by kumascript if the document is localized:
   let allMetadata = metadata;
 
   try {
     let kumascriptMetadata;
-    [$, flaws, kumascriptMetadata] = await kumascript.render(document.url);
+    [$1, flaws, kumascriptMetadata] = await kumascript.render(document.url, {
+      md: documentOptions.md,
+    });
+    console.log($1); // TODO: take care of me
+    $ = $1 as cheerio.CheerioAPI;
+
     allMetadata = { ...allMetadata, ...kumascriptMetadata };
   } catch (error) {
     if (

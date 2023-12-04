@@ -53,6 +53,7 @@ import {
   MacroPagesError,
 } from "./errors.js";
 import { RedirectInfo } from "../../libs/types/document.js";
+import { h2mSync } from "../../markdown/index.js";
 
 const defaultTemplates = new Templates();
 
@@ -64,7 +65,7 @@ export async function render(
   source: string,
   pageEnvironment,
   renderPrerequisiteFromURL,
-  { templates = null } = {}
+  { templates = null, md = false } = {}
 ): Promise<[string, MacroExecutionError[]]> {
   pageEnvironment.slug = pageEnvironment.slug.replace(
     /^(orphaned)|(conflicting)\//,
@@ -259,7 +260,8 @@ export async function render(
         );
       }
     }
-    output += currentResult.output;
+    // h2m here
+    output += md ? h2mSync(currentResult.output) : currentResult.output;
     if (currentResult.errors.fatal) {
       errors.push(currentResult.errors.fatal);
     } else if (currentResult.errors.nonFatal) {

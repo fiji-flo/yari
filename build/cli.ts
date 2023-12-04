@@ -73,7 +73,11 @@ async function buildDocumentInteractive(
       );
     }
 
-    return { document, doc: await buildDocument(document), skip: false };
+    return {
+      document,
+      doc: await buildDocument(document, { md: true }),
+      skip: false,
+    };
   } catch (e) {
     if (!interactive) {
       throw e;

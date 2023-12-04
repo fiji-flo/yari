@@ -1,4 +1,7 @@
 import { unified } from "unified";
+import rehypeParse from "rehype-parse";
+import rehypeRemark from "rehype-remark";
+import remarkStringify from "remark-stringify";
 import parse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import stringify from "rehype-stringify";
@@ -43,4 +46,13 @@ export function m2hSync(md: string, options: ProcessorOptions) {
 
   const file = processor.processSync(ksEncoded);
   return decodeKS(String(file));
+}
+
+export function h2mSync(html: string) {
+  const file = unified()
+    .use(rehypeParse)
+    .use(rehypeRemark)
+    .use(remarkStringify)
+    .processSync(html);
+  return String(file);
 }

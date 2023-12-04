@@ -28,6 +28,7 @@ interface RenderOptions {
   urlsSeen?: Set<string>;
   selective_mode?: [string, string[]] | false;
   invalidateCache?: boolean;
+  md?: boolean;
 }
 
 export async function render(
@@ -36,9 +37,10 @@ export async function render(
     urlsSeen = null,
     selective_mode = false,
     invalidateCache = false,
+    md = false,
   }: RenderOptions = {},
   doc?: Doc
-): Promise<[cheerio.CheerioAPI, SourceCodeError[], any]> {
+): Promise<[cheerio.CheerioAPI | string, SourceCodeError[], any]> {
   const urlLC = url.toLowerCase();
   if (renderCache.has(urlLC)) {
     if (invalidateCache) {
@@ -89,7 +91,7 @@ export async function render(
     ? await m2h(rawBody, { locale: metadata.locale })
     : rawBody;
   const [renderedHtml, errors] = await renderMacros(
-    rawHTML,
+    md ? rawBody : rawHTML,
     {
       ...metadata,
       url,
@@ -116,9 +118,12 @@ export async function render(
         prerequisiteErrorsByKey.set(error.key, error);
       }
       return renderedHtml;
-    }
+    },
+    { md }
   );
-
+  if (md) {
+    return [renderedHtml, [], metadata];
+  }
   // For now, we're just going to inject section ID's.
   // TODO: Sanitize the HTML and also filter the "src"
   //       attributes of any iframes.
