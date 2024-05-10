@@ -400,21 +400,30 @@ app.get("/*", async (req, res, ...args) => {
   let document;
   try {
     console.time(`buildDocumentFromURL(${lookupURL})`);
-    const built = await buildDocumentFromURL(lookupURL);
-    if (built) {
-      document = built.doc;
-    } else if (
-      lookupURL.split("/")[1] &&
-      lookupURL.split("/")[1].toLowerCase() !== DEFAULT_LOCALE.toLowerCase() &&
-      !CONTENT_TRANSLATED_ROOT
-    ) {
-      // Such a common mistake. You try to view a URL that is not en-US but
-      // you forgot to set CONTENT_TRANSLATED_ROOT.
-      console.warn(
-        `URL is for locale '${
-          lookupURL.split("/")[1]
-        }' but CONTENT_TRANSLATED_ROOT is not set. URL will 404.`
-      );
+    if (!req.query["yari"]) {
+      console.log("rari");
+      document = (
+        await (await fetch(`http://localhost:8083${lookupURL}`)).json()
+      ).doc;
+    } else {
+      console.time(`buildDocumentFromURL(${lookupURL})`);
+      const built = await buildDocumentFromURL(lookupURL);
+      if (built) {
+        document = built.doc;
+      } else if (
+        lookupURL.split("/")[1] &&
+        lookupURL.split("/")[1].toLowerCase() !==
+          DEFAULT_LOCALE.toLowerCase() &&
+        !CONTENT_TRANSLATED_ROOT
+      ) {
+        // Such a common mistake. You try to view a URL that is not en-US but
+        // you forgot to set CONTENT_TRANSLATED_ROOT.
+        console.warn(
+          `URL is for locale '${
+            lookupURL.split("/")[1]
+          }' but CONTENT_TRANSLATED_ROOT is not set. URL will 404.`
+        );
+      }
     }
   } catch (error) {
     console.error(`Error in buildDocumentFromURL(${lookupURL})`, error);
