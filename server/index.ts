@@ -274,8 +274,16 @@ app.get("/:locale/blog/author/:slug/:asset", async (req, res) => {
 });
 if (BLOG_ROOT) {
   app.get("/:locale/blog/:slug/index.json", async (req, res) => {
-    const { slug } = req.params;
-    const data = await findPostBySlug(slug);
+    const { slug, locale } = req.params;
+    let data;
+    if (process.env["rari"]) {
+      data = await (
+        await fetch(`http://localhost:8083/${locale}/blog/${slug}/`)
+      ).json();
+    } else {
+      const { slug } = req.params;
+      data = await findPostBySlug(slug);
+    }
     if (!data) {
       return res.status(404).send("Nothing here 🤷‍♂️");
     }
@@ -400,8 +408,7 @@ app.get("/*", async (req, res, ...args) => {
   let document;
   try {
     console.time(`buildDocumentFromURL(${lookupURL})`);
-    if (!req.query["yari"]) {
-      console.log("rari");
+    if (process.env["rari"]) {
       document = (
         await (await fetch(`http://localhost:8083${lookupURL}`)).json()
       ).doc;

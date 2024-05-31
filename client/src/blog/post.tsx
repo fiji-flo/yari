@@ -189,6 +189,7 @@ export function BlogPost(props: HydrationData) {
     }
   );
   const { doc, blogMeta } = data || props || {};
+  console.log("🙈", doc, blogMeta);
   useRunSample(doc);
   useCopyExamplesToClipboardAndAIExplain(doc);
   return (
