@@ -276,7 +276,7 @@ if (BLOG_ROOT) {
   app.get("/:locale/blog/:slug/index.json", async (req, res) => {
     const { slug, locale } = req.params;
     let data;
-    if (process.env["rari"]) {
+    if (process.env.RARI) {
       data = await (
         await fetch(`http://localhost:8083/${locale}/blog/${slug}/`)
       ).json();
@@ -408,7 +408,7 @@ app.get("/*", async (req, res, ...args) => {
   let document;
   try {
     console.time(`buildDocumentFromURL(${lookupURL})`);
-    if (process.env["rari"]) {
+    if (process.env.RARI) {
       document = (
         await (await fetch(`http://localhost:8083${lookupURL}`)).json()
       ).doc;
