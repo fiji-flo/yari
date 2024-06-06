@@ -252,12 +252,20 @@ app.get(
   }
 );
 
-app.get("/:locale/blog/index.json", async (_, res) => {
-  const posts = await allPostFrontmatter(
-    { includeUnpublished: true },
-    MEMOIZE_INVALIDATE
-  );
-  return res.json({ hyData: { posts } });
+app.get("/:locale/blog/index.json", async (req, res) => {
+  const { locale } = req.params;
+  if (process.env.RARI) {
+    const data = await (
+      await fetch(`http://localhost:8083/${locale}/blog/`)
+    ).json();
+    return res.json(data);
+  } else {
+    const posts = await allPostFrontmatter(
+      { includeUnpublished: true },
+      MEMOIZE_INVALIDATE
+    );
+    return res.json({ hyData: { posts } });
+  }
 });
 app.get("/:locale/blog/author/:slug/:asset", async (req, res) => {
   const { slug, asset } = req.params;
@@ -316,6 +324,24 @@ if (BLOG_ROOT) {
       ).pipe(res);
     }
     return res.status(404).send("Nothing here 🤷‍♂️");
+  });
+  app.get("/:locale/blog/:slug/", async (req, res) => {
+    let url = decodeURI(req.path);
+    const { slug, locale } = req.params;
+    let data;
+    if (process.env.RARI) {
+      data = await (
+        await fetch(`http://localhost:8083/${locale}/blog/${slug}/`)
+      ).json();
+    } else {
+      const { slug } = req.params;
+      data = await findPostBySlug(slug);
+    }
+    if (!data) {
+      return res.status(404).send("Nothing here 🤷‍♂️");
+    }
+    res.header("Content-Security-Policy", CSP_VALUE);
+    return res.send(renderHTML(url, data));
   });
 } else {
   console.warn("'BLOG_ROOT' not set in .env file");
