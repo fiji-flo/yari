@@ -243,12 +243,20 @@ app.get(
     "/:locale/curriculum/index.json",
   ],
   async (req, res) => {
-    const { slug = "" } = req.params;
-    const data = await findCurriculumPageBySlug(slug);
-    if (!data) {
-      return res.status(404).send("Nothing here 🤷‍♂️");
+    const { locale, slug = "" } = req.params;
+    if (process.env.RARI) {
+      console.log(`http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`);
+      const data = await (
+        await fetch(`http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`)
+      ).json();
+      return res.json(data);
+    } else {
+      const data = await findCurriculumPageBySlug(slug);
+      if (!data) {
+        return res.status(404).send("Nothing here 🤷‍♂️");
+      }
+      return res.json(data);
     }
-    return res.json(data);
   }
 );
 
