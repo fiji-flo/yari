@@ -43,7 +43,7 @@ import "./interactive-examples.scss";
 import { DocumentSurvey } from "../ui/molecules/document-survey";
 import { useIncrementFrequentlyViewed } from "../plus/collections/frequently-viewed";
 import { useInteractiveExamplesActionHandler as useInteractiveExamplesTelemetry } from "../telemetry/interactive-examples";
-import { BottomBanner, SidePlacement } from "../ui/organisms/placement";
+import { BottomBanner, NewSidePlacement } from "../ui/organisms/placement";
 import { BaselineIndicator } from "./baseline-indicator";
 import { PlayQueue } from "../playground/queue";
 import { useGleanClick } from "../telemetry/glean-context";
@@ -241,7 +241,7 @@ export function Document(props /* TODO: define a TS interface for this */) {
             <aside className="toc">
               <nav>{doc.toc && !!doc.toc.length && <TOC toc={doc.toc} />}</nav>
             </aside>
-            {PLACEMENT_ENABLED && <SidePlacement />}
+            {PLACEMENT_ENABLED && <NewSidePlacement />}
           </div>
         </div>
 

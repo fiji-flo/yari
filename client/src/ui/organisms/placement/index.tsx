@@ -30,6 +30,7 @@ interface PlacementRenderArgs {
   style: object;
   version?: number;
   typ: string;
+  heading?: string;
 }
 
 const INTERSECTION_OPTIONS = {
@@ -45,6 +46,24 @@ function viewed(pong?: PlacementData) {
         pong?.version ? `&version=${pong.version}` : ""
       }`
     );
+}
+
+export function NewSidePlacement() {
+  const placementData = usePlacement();
+
+  return !placementData?.newSide ? (
+    <section className="place side"></section>
+  ) : (
+    <PlacementInner
+      pong={placementData.newSide}
+      extraClassNames={["new-side"]}
+      imageWidth={125}
+      imageHeight={125}
+      cta={placementData.newSide?.cta}
+      renderer={RenderNewSideBanner}
+      typ="newSide"
+    ></PlacementInner>
+  );
 }
 
 export function SidePlacement() {
@@ -274,7 +293,7 @@ export function PlacementInner({
     };
   }, [isVisible, isIntersecting, sendViewed]);
 
-  const { image, copy, alt, click, version } = pong || {};
+  const { image, copy, alt, click, version, heading } = pong || {};
   return (
     <>
       {!isServer &&
@@ -293,6 +312,7 @@ export function PlacementInner({
           style,
           version,
           typ,
+          heading,
         })}
     </>
   );
@@ -478,5 +498,90 @@ function RenderBottomBanner({
         </a>
       </section>
     </div>
+  );
+}
+
+function RenderNewSideBanner({
+  place,
+  extraClassNames = [],
+  click,
+  image,
+  alt,
+  imageWidth,
+  imageHeight,
+  copy,
+  cta,
+  user,
+  style,
+  version = 1,
+  typ,
+  heading,
+}: PlacementRenderArgs) {
+  return (
+    <section
+      ref={place}
+      className={["place", ...extraClassNames].join(" ")}
+      style={style}
+    >
+      <p className="pong-box2">
+        <img
+          src={`/pimg/${encodeURIComponent(image || "")}`}
+          aria-hidden={!Boolean(alt)}
+          alt={alt || ""}
+          width={imageWidth}
+          height={imageHeight}
+        ></img>
+        <div>
+          <a
+            href="/en-US/advertising"
+            className="pong-note"
+            data-glean="pong: pong->about"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Ad
+          </a>
+          <a
+            className="pong"
+            data-glean={`pong: pong->click ${typ}`}
+            href={`/pong/click?code=${encodeURIComponent(
+              click
+            )}&version=${version}`}
+            target="_blank"
+            rel="sponsored noreferrer"
+          >
+            <strong>{heading}</strong>
+            <span>{copy}</span>
+          </a>
+          {cta && (
+            <a
+              className="pong-cta"
+              data-glean={`pong: pong->click ${typ}`}
+              href={`/pong/click?code=${encodeURIComponent(
+                click
+              )}&version=${version}`}
+              target="_blank"
+              rel="sponsored noreferrer"
+            >
+              {cta}
+            </a>
+          )}
+        </div>
+      </p>
+
+      <a
+        className="no-pong"
+        data-glean={
+          "pong: " + (user?.isSubscriber ? "pong->settings" : "pong->plus")
+        }
+        href={
+          user?.isSubscriber
+            ? "/en-US/plus/settings?ref=nope"
+            : "/en-US/plus?ref=nope#subscribe"
+        }
+      >
+        Don't want to see ads?
+      </a>
+    </section>
   );
 }
