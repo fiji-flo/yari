@@ -218,7 +218,15 @@ async function readCurriculumPage(
           summary,
           topic,
           slug,
-          children: children.length ? children : undefined,
+          children: children.length
+            ? children.map(({ url, title, summary, topic, slug }) => ({
+                url,
+                title,
+                summary,
+                topic,
+                slug,
+              }))
+            : undefined,
         }));
     } else if (attributes.template === Template.Overview) {
       modules = (await buildCurriculumIndex())
