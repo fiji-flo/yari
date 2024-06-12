@@ -211,12 +211,13 @@ async function readCurriculumPage(
     if (attributes.template === Template.Landing) {
       modules = (await buildCurriculumIndex())
         ?.filter((x) => x.children?.length)
-        .map(({ url, title, summary, topic, slug }) => ({
+        .map(({ url, title, summary, topic, slug, children }) => ({
           url,
           title,
           summary,
           topic,
           slug,
+          children: children.length ? children : undefined,
         }));
     } else if (attributes.template === Template.Overview) {
       modules = (await buildCurriculumIndex())
