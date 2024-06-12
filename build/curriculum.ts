@@ -100,12 +100,16 @@ export async function buildCurriculumIndex(
     const entry = mapper(meta);
     if (currentLevel > 2) {
       if (last) {
-        last.children.push(entry);
+        if (!last.children) {
+          last.children = [entry];
+        } else {
+          last.children.push(entry);
+        }
         return item;
       }
     }
 
-    item.push({ children: [], ...entry });
+    item.push({ ...entry });
     return item;
   }, []);
 
@@ -128,10 +132,10 @@ function prevNextFromIndex(
   const prevEntry = i > 0 ? index[i - 1] : undefined;
   const nextEntry = i < index.length - 1 ? index[i + 1] : undefined;
 
-  prevEntry && "children" in prevEntry && delete prevEntry.children;
-  nextEntry && "children" in nextEntry && delete nextEntry.children;
+  const prev = prevEntry && { url: prevEntry.url, title: prevEntry.title };
+  const next = nextEntry && { url: nextEntry.url, title: nextEntry.title };
 
-  return { prev: prevEntry, next: nextEntry };
+  return { prev, next };
 }
 
 async function buildPrevNextOverview(slug: string): Promise<PrevNext> {
@@ -206,13 +210,25 @@ async function readCurriculumPage(
   let group: string;
   if (!options?.forIndex) {
     if (attributes.template === Template.Landing) {
-      modules = (await buildCurriculumIndex())?.filter(
-        (x) => x.children?.length
-      );
+      modules = (await buildCurriculumIndex())
+        ?.filter((x) => x.children?.length)
+        .map(({ url, title, summary, topic, slug }) => ({
+          url,
+          title,
+          summary,
+          topic,
+          slug,
+        }));
     } else if (attributes.template === Template.Overview) {
-      modules = (await buildCurriculumIndex())?.find(
-        (x) => x.slug === slug
-      )?.children;
+      modules = (await buildCurriculumIndex())
+        ?.find((x) => x.slug === slug)
+        ?.children.map(({ url, title, summary, topic, slug }) => ({
+          url,
+          title,
+          summary,
+          topic,
+          slug,
+        }));
     }
     if (attributes.template === Template.Module) {
       prevNext = await buildPrevNextModule(slug);
@@ -399,33 +415,12 @@ function setCurriculumTypes($: CheerioAPI) {
     const text = p.text();
     switch (text) {
       case "Learning outcomes:":
-        p.addClass("curriculum-outcomes");
+        p.prepend('<span class="curriculum-outcomes"></span>');
         break;
       case "General resources:":
       case "Resources:":
-        p.addClass("curriculum-resources");
+        p.prepend('<span class="curriculum-resources"></span>');
         break;
-    }
-  });
-
-  $("p.curriculum-resources + ul > li").each((_, child) => {
-    const li = $(child);
-
-    if (li.find("a.external").length) {
-      li.addClass("external");
-    }
-  });
-
-  $("blockquote").each((_, child) => {
-    const bq = $(child);
-
-    const [p] = bq.find("p");
-
-    if (p) {
-      const notes = $(p);
-      if (/((general )?notes?):/i.test(notes.text())) {
-        bq.addClass("curriculum-notes");
-      }
     }
   });
 }
