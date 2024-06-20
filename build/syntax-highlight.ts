@@ -2,8 +2,6 @@ import Prism from "prismjs";
 import loadLanguages from "prismjs/components/index.js";
 import "prism-svelte";
 import * as cheerio from "cheerio";
-import { createHmac } from "node:crypto";
-import { SAMPLE_SIGN_KEY } from "../libs/env/index.js";
 
 const lazy = (creator) => {
   let res;
@@ -110,13 +108,6 @@ export function syntaxHighlight($: cheerio.CheerioAPI, doc) {
       return;
     }
     const code = $pre.text();
-    if (SAMPLE_SIGN_KEY) {
-      const hmac = createHmac("sha256", SAMPLE_SIGN_KEY);
-      hmac.update(name.toLowerCase());
-      hmac.update(code);
-      const signature = hmac.digest("base64");
-      $pre.attr("data-signature", signature);
-    }
     $pre.wrapAll(`<div class='code-example'></div>`);
     if (!$pre.hasClass("hidden")) {
       $(
@@ -130,8 +121,9 @@ export function syntaxHighlight($: cheerio.CheerioAPI, doc) {
       );
       return; // bail!
     }
-    const html = Prism.highlight(code, grammar, name);
-    const $code = $("<code>").html(html);
+    //const html = Prism.highlight(code, grammar, name);
+    //const $code = $("<code>").html(html);
+    const $code = $("<code>").text(code);
 
     $pre.empty().append($code);
   });
