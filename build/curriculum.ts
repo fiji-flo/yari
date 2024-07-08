@@ -421,10 +421,12 @@ function setCurriculumTypes($: CheerioAPI) {
     const text = p.text();
     switch (text) {
       case "Learning outcomes:":
+        p.toggleClass("curriculum-outcomes", true);
         p.prepend('<span class="curriculum-outcomes"></span>');
         break;
       case "General resources:":
       case "Resources:":
+        p.toggleClass("curriculum-resources", true);
         p.prepend('<span class="curriculum-resources"></span>');
         break;
     }
