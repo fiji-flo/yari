@@ -223,7 +223,7 @@
         margin-top: 2rem;
       }
 
-      blockquote {
+      blockquote.curriculum-notes {
         background-color: var(--curriculum-bg-color-note);
         border: 0;
         border-radius: var(--elem-radius);
@@ -255,7 +255,7 @@
         }
       }
 
-      p:has(> span.curriculum-outcomes) {
+      p.curriculum-outcomes {
         display: flex;
         font-weight: var(--font-body-strong-weight);
         margin-bottom: 0.5rem;
