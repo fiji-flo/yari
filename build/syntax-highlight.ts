@@ -1,6 +1,3 @@
-import Prism from "prismjs";
-import loadLanguages from "prismjs/components/index.js";
-import "prism-svelte";
 import * as cheerio from "cheerio";
 
 const lazy = (creator) => {
@@ -13,52 +10,6 @@ const lazy = (creator) => {
     return res;
   };
 };
-
-const loadAllLanguages = lazy(() => {
-  // Some languages are always loaded by Prism, so we can omit them here:
-  // - Markup (atom, html, markup, mathml, rss, ssml, svg, xml)
-  // - CSS (css)
-  // - C-like (clike)
-  // - JavaScript (javascript, js)
-  loadLanguages([
-    "apacheconf",
-    "bash",
-    "batch",
-    "c",
-    "cpp",
-    "cs",
-    "diff",
-    "django",
-    "glsl",
-    "handlebars",
-    "http",
-    "ignore",
-    "ini",
-    "java",
-    "json",
-    "jsx",
-    "latex",
-    "less",
-    "md",
-    "nginx",
-    "php",
-    "powershell",
-    "pug",
-    "python",
-    "regex",
-    "rust",
-    "scss",
-    "sql",
-    // 'svelte', // Loaded by `prism-svelte` extension
-    "toml",
-    "tsx",
-    "typescript",
-    "uri",
-    "wasm",
-    "webidl",
-    "yaml",
-  ]);
-});
 
 // Add things to this list to help make things convenient. Sometimes
 // there are `<pre class="brush: foo">` whose name is not that which
@@ -82,8 +33,6 @@ const IGNORE = new Set(["none", "text", "plain", "unix"]);
  *
  */
 export function syntaxHighlight($: cheerio.CheerioAPI, doc) {
-  loadAllLanguages();
-
   // Our content will be like this: `<pre class="brush:js">` or
   // `<pre class="brush: js">` so we're technically not looking for an exact
   // match. The wildcard would technically match `<pre class="brushetta">`
@@ -114,13 +63,13 @@ export function syntaxHighlight($: cheerio.CheerioAPI, doc) {
         `<div class='example-header'><span class="language-name">${name}</span></div>`
       ).insertBefore($pre);
     }
-    const grammar = Prism.languages[name];
-    if (!grammar) {
-      console.warn(
-        `Unable to find a Prism grammar for '${name}' found in ${doc.mdn_url}`
-      );
-      return; // bail!
-    }
+    //const grammar = Prism.languages[name];
+    //if (!grammar) {
+    //  console.warn(
+    //    `Unable to find a Prism grammar for '${name}' found in ${doc.mdn_url}`
+    //  );
+    //  return; // bail!
+    //}
     //const html = Prism.highlight(code, grammar, name);
     //const $code = $("<code>").html(html);
     const $code = $("<code>").text(code);
