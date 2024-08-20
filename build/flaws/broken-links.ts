@@ -138,7 +138,7 @@ export function getBrokenLinksFlaws(
       }
       const id = `link${flaws.length + 1}`;
       const fixable = !!suggestion;
-      $element.attr("data-flaw", id);
+      //$element.attr("data-flaw", id);
       flaws.push(
         Object.assign({ explanation, id, href, suggestion, fixable }, match)
       );
