@@ -245,9 +245,13 @@ app.get(
   async (req, res) => {
     const { locale, slug = "" } = req.params;
     if (process.env.RARI) {
-      console.log(`http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`);
+      console.log(
+        `http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`
+      );
       const data = await (
-        await fetch(`http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`)
+        await fetch(
+          `http://localhost:8083/${locale}/curriculum/${slug}${slug ? "/" : ""}`
+        )
       ).json();
       return res.json(data);
     } else {
@@ -334,7 +338,6 @@ if (BLOG_ROOT) {
     return res.status(404).send("Nothing here 🤷‍♂️");
   });
   app.get("/:locale/blog/:slug/", async (req, res) => {
-    let url = decodeURI(req.path);
     const { slug, locale } = req.params;
     let data;
     if (process.env.RARI) {
@@ -349,10 +352,40 @@ if (BLOG_ROOT) {
       return res.status(404).send("Nothing here 🤷‍♂️");
     }
     res.header("Content-Security-Policy", CSP_VALUE);
-    return res.send(renderHTML(url, data));
+    return res.send(renderHTML(data));
   });
 } else {
   console.warn("'BLOG_ROOT' not set in .env file");
+}
+if (process.env.RARI) {
+  app.get("/:locale/community/spotlight/:slug/index.json", async (req, res) => {
+    console.log("DOOM");
+    const { slug, locale } = req.params;
+    const data = await (
+      await fetch(`http://localhost:8083/${locale}/community/spotlight/${slug}`)
+    ).json();
+    console.log(data);
+    if (!data) {
+      return res.status(404).send("Nothing here 🤷‍♂️");
+    }
+    return res.json(data);
+  });
+  app.get("/:locale/community/spotlight/:slug", async (req, res) => {
+    console.log("DOOM");
+    const url = decodeURI(req.path);
+    const { slug, locale } = req.params;
+    const data = await (
+      await fetch(`http://localhost:8083/${locale}/community/spotlight/${slug}`)
+    ).json();
+    console.log(data);
+    if (!data) {
+      return res.status(404).send("Nothing here 🤷‍♂️");
+    }
+    res.header("Content-Security-Policy", CSP_VALUE);
+    const html = renderHTML(data);
+    console.log(html);
+    return res.send(html);
+  });
 }
 app.get("/*", async (req, res, ...args) => {
   const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
