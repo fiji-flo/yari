@@ -428,6 +428,13 @@ app.get("/*", async (req, res, ...args) => {
     // If it's a known SPA, like `/en-US/search` then that should have been
     // matched to its file and not end up here in the catchall handler.
     // Simulate what we do in the Lambda@Edge.
+    const data = await (await fetch(`http://localhost:8083${req.url}`)).json();
+    if (data) {
+      const html = renderHTML(data);
+      console.log(html);
+      return res.send(html);
+    }
+
     return res
       .status(404)
       .sendFile(path.join(STATIC_ROOT, "en-us", "_spas", "404.html"));
