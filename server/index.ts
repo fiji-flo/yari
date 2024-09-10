@@ -279,19 +279,6 @@ app.get("/:locale/blog/index.json", async (req, res) => {
     return res.json({ hyData: { posts } });
   }
 });
-app.get("/:locale/blog/author/:slug/:asset", async (req, res) => {
-  const { slug, asset } = req.params;
-  return send(
-    req,
-    path.resolve(
-      BLOG_ROOT,
-      "..",
-      "authors",
-      sanitizeFilename(slug),
-      sanitizeFilename(asset)
-    )
-  ).pipe(res);
-});
 if (BLOG_ROOT) {
   app.get("/:locale/blog/:slug/index.json", async (req, res) => {
     const { slug, locale } = req.params;
