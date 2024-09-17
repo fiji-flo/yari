@@ -468,7 +468,6 @@ app.get("/*", async (req, res, ...args) => {
 
   let document;
   try {
-    console.time(`buildDocumentFromURL(${lookupURL})`);
     if (process.env.RARI) {
       document = (
         await (await fetch(`http://localhost:8083${lookupURL}`)).json()

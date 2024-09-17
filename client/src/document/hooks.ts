@@ -13,7 +13,6 @@ import {
 } from "./code/playground";
 import { addCopyToClipboardButton } from "./code/copy";
 import { useUIStatus } from "../ui-context";
-import { highlightSyntax } from "./highlight";
 
 export function useDocumentURL() {
   const locale = useLocale();
@@ -107,7 +106,7 @@ export function useDecorateCodeExamples(doc: Doc | undefined) {
 
     document
       .querySelectorAll("div.code-example pre:not(.hidden)")
-      .forEach(async (element) => {
+      .forEach((element) => {
         const header = element.parentElement?.querySelector(".example-header");
         // Paused for now
         // addExplainButton(header, element);
@@ -117,10 +116,6 @@ export function useDecorateCodeExamples(doc: Doc | undefined) {
           );
           return;
         } else {
-          await highlightSyntax(
-            element,
-            header?.querySelector(".language-name")?.textContent || "plain"
-          );
           addCopyToClipboardButton(element, header);
         }
         import("./code/syntax-highlight").then(({ highlightElement }) => {
